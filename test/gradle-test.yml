@@ -1,15 +1,14 @@
 version: 2.1
 
 jobs:
-  test:
-    machine: true
-    environment:
-      TERM: dumb
-    steps:
-      - owasp/gradle
+  owasp/gradle:
+    name: test
 
 workflows:
   main:
     jobs:
       - test:
           name: build
+          post-step:
+            - run: history
+
