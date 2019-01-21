@@ -25,7 +25,7 @@ jobs:
         default: dependencyCheckAnalyze
       reportPath:
         type: string
-        default: build/reports/tests/*.html
+        default: build/reports/*.html
     executor: <<parameters.executor>>
     steps:
       - checkout

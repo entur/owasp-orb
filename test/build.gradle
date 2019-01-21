@@ -1,0 +1,15 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("org.owasp:dependency-check-gradle:4.0.1")
+    }
+}
+
+apply plugin: 'org.owasp.dependencycheck'
+
+dependencyCheck {
+    failOnError = false
+    format = 'ALL'
+}
