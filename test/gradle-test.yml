@@ -1,13 +1,9 @@
 version: 2.1
 
-jobs:
-  owasp/gradle:
-    name: test
-
 workflows:
   main:
     jobs:
-      - test:
+      - owasp/gradle:
           name: build
           post-step:
             - run: history
