@@ -27,14 +27,14 @@ workflows:
             branches:
               ignore: master
           orb-path: src/@orb.yml
-          orb-ref: entur/vm-install-tools@dev:$CIRCLE_BRANCH
+          orb-ref: entur/owasp@dev:$CIRCLE_BRANCH
       - orb-tools/test-in-builds:
           name: test
           orb-location: src/@orb.yml
-          orb-name: vm-install-tools
+          orb-name: owasp
           test-steps:
             - orb-tools/local-test-build:
-                test-config-location: test/install-test.yml
+                test-config-location: test/gradle-test.yml
           requires:
             - publish
             - lint
@@ -45,6 +45,6 @@ workflows:
             branches:
               only: master
           orb-path: src/@orb.yml
-          orb-ref: entur/vm-install-tools
+          orb-ref: entur/owasp
           requires:
             - test
