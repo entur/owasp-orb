@@ -14,8 +14,7 @@ executors:
           TERM: dumb
 
 jobs:
-  gradle/test:
-    name: gradle
+  gradle:
     parameters:
       executor:
         description: The name of custom executor to use
@@ -28,6 +27,14 @@ jobs:
         type: string
         default: build/reports/tests/*.html
     executor: <<parameters.executor>>
-    test_command: <<parameters.command>>
-    reports_path: <<parameters.reportPath>>
+    steps:
+      - checkout
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Run Tests
+                command: ./gradlew << parameters.command >>
+      - gradle/collect_test_results:
+          test_results_path: ""
+          reports_path: <<parameters.reportPath>>
 
