@@ -5,6 +5,6 @@ workflows:
     jobs:
       - owasp/gradle:
           name: build
-          post-step:
+          post-steps:
             - run: history
 
