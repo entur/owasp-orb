@@ -1,0 +1,22 @@
+version: 2.1
+
+orbs:
+  orb-tools: circleci/orb-tools@3.0.0
+
+executors:
+  lint-condo:
+    resource_class: small
+    docker:
+      - image: singapore/lint-condo
+
+jobs:
+  lint:
+    executor: lint-condo
+    steps:
+      - checkout
+      - run: yamllint .
+
+workflows:
+  verify:
+    jobs:
+      - lint
