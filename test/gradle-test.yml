@@ -1,0 +1,15 @@
+version: 2.1
+
+jobs:
+  test:
+    machine: true
+    environment:
+      TERM: dumb
+    steps:
+      - owasp/gradle
+
+workflows:
+  main:
+    jobs:
+      - test:
+          name: build

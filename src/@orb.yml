@@ -1,0 +1,33 @@
+version: 2.1
+
+description: |
+  An orb for running owasp vulnerability checks through gradle or maven
+
+orbs:
+  gradle: circleci/gradle@1.0.6
+
+executors:
+  default:
+    docker:
+      - image: circleci/openjdk:11-jdk-sid
+        environment:
+          TERM: dumb
+
+jobs:
+  gradle/test:
+    name: gradle
+    parameters:
+      executor:
+        description: The name of custom executor to use
+        type: executor
+        default: default
+      command:
+        type: string
+        default: dependencyCheckAnalyze
+      reportPath:
+        type: string
+        default: build/reports/tests/*.html
+    executor: <<parameters.executor>>
+    test_command: <<parameters.command>>
+    reports_path: <<parameters.reportPath>>
+

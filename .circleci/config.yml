@@ -20,3 +20,29 @@ workflows:
   verify:
     jobs:
       - lint
+      - orb-tools/publish:
+          name: publish
+          filters:
+            branches:
+              ignore: master
+          orb-path: src/@orb.yml
+          orb-ref: entur/vm-install-tools@dev:$CIRCLE_BRANCH
+      - orb-tools/test-in-builds:
+          name: test
+          orb-location: src/@orb.yml
+          orb-name: vm-install-tools
+          test-steps:
+            - orb-tools/local-test-build:
+                test-config-location: test/install-test.yml
+          requires:
+            - publish
+            - lint
+      - orb-tools/increment:
+          name: release
+          filters:
+            branches:
+              only: master
+          orb-path: src/@orb.yml
+          orb-ref: entur/vm-install-tools
+          requires:
+            - test
