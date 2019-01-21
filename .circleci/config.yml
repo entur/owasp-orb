@@ -22,6 +22,7 @@ workflows:
       - lint
       - orb-tools/publish:
           name: publish
+          context: orb-publishing
           filters:
             branches:
               ignore: master
@@ -39,6 +40,7 @@ workflows:
             - lint
       - orb-tools/increment:
           name: release
+          context: orb-publishing
           filters:
             branches:
               only: master
