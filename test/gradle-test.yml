@@ -5,6 +5,8 @@ workflows:
     jobs:
       - owasp/gradle:
           name: build
+          pre-steps:
+            - run: echo "cd test; ./gradlew $1" \>> gradlew
           post-steps:
             - run: history
 
