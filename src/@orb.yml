@@ -59,6 +59,7 @@ jobs:
                 name: Run Tests
                 command: ./gradlew dependencyCheckAnalyze
       - gradle/collect_test_results:
+          test_results_path: ""
           reports_path: <<parameters.reportPath>>
       - store_owasp_cache:
           cve_data_directory: <<parameters.cve_data_directory>>
