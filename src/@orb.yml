@@ -13,6 +13,24 @@ executors:
         environment:
           TERM: dumb
 
+commands:
+  restore_owasp_cache:
+    steps:
+      - restore_cache:
+          keys:
+            - cve-cache-{{ .Environment.Y }}-{{ .Environment.J }}
+            - cve-cache-{{ .Environment.Y }}
+            - cve-cache
+  store_owasp_cache:
+    parameters:
+      cve_data_directory:
+        type: string
+    steps:
+      - save_cache:
+          key: cve-cache-{{ .Environment.Y }}-{{ .Environment.J }}
+          paths:
+            - <<parameters.cve_data_directory>>
+
 jobs:
   gradle:
     parameters:
@@ -20,21 +38,28 @@ jobs:
         description: The name of custom executor to use
         type: executor
         default: default
-      command:
+      cve_data_directory:
         type: string
-        default: dependencyCheckAnalyze
+        default: "~/.gradle/caches/modules-2/files-2.1/org.owasp/dependency-check-utils/dependency-check-data"
       reportPath:
         type: string
         default: build/reports/
     executor: <<parameters.executor>>
     steps:
       - checkout
+      - run:
+          name: Generate cache key
+          command: |
+            export Y=$(date +"%Y")
+            export J=$(date +"%j")
+      - restore_owasp_cache
       - gradle/with_cache:
           steps:
             - run:
                 name: Run Tests
-                command: ./gradlew << parameters.command >>
+                command: ./gradlew dependencyCheckAnalyze
       - gradle/collect_test_results:
-          test_results_path: ""
           reports_path: <<parameters.reportPath>>
+      - store_owasp_cache:
+          cve_data_directory: <<parameters.cve_data_directory>>
 
