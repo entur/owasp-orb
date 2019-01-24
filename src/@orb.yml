@@ -18,8 +18,8 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - cve-cache-{{ .Environment.Y }}-{{ .Environment.J }}
-            - cve-cache-{{ .Environment.Y }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}
+            - cve-cache-{{ checksum "year" }}
             - cve-cache
   store_owasp_cache:
     parameters:
@@ -27,7 +27,7 @@ commands:
         type: string
     steps:
       - save_cache:
-          key: cve-cache-{{ .Environment.Y }}-{{ .Environment.J }}
+          key: cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}
           paths:
             - <<parameters.cve_data_directory>>
 
@@ -48,10 +48,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Generate cache key
+          name: Generate cache keys
           command: |
-            echo 'export Y=$(date +"%Y")' >> $BASH_ENV
-            echo 'export J=$(date +"%j")' >> $BASH_ENV
+            echo $(date +"%Y") >> year
+            echo $(date +"%j") >> dayOfYear
       - restore_owasp_cache
       - gradle/with_cache:
           steps:
