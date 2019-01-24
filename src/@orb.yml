@@ -1,0 +1,66 @@
+version: 2.1
+
+description: |
+  An orb for running owasp vulnerability checks through gradle or maven
+
+orbs:
+  gradle: circleci/gradle@1.0.6
+
+executors:
+  default:
+    docker:
+      - image: circleci/openjdk:11-jdk-sid
+        environment:
+          TERM: dumb
+
+commands:
+  restore_owasp_cache:
+    steps:
+      - restore_cache:
+          keys:
+            - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}
+            - cve-cache-{{ checksum "year" }}
+            - cve-cache
+  store_owasp_cache:
+    parameters:
+      cve_data_directory:
+        type: string
+    steps:
+      - save_cache:
+          key: cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}
+          paths:
+            - <<parameters.cve_data_directory>>
+
+jobs:
+  gradle:
+    parameters:
+      executor:
+        description: The name of custom executor to use
+        type: executor
+        default: default
+      cve_data_directory:
+        type: string
+        default: "~/.gradle/caches/modules-2/files-2.1/org.owasp/dependency-check-utils/dependency-check-data"
+      reportPath:
+        type: string
+        default: build/reports/
+    executor: <<parameters.executor>>
+    steps:
+      - checkout
+      - run:
+          name: Generate cache keys
+          command: |
+            echo $(date +"%Y") >> year
+            echo $(date +"%j") >> dayOfYear
+      - restore_owasp_cache
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Run Tests
+                command: ./gradlew dependencyCheckAnalyze
+      - gradle/collect_test_results:
+          test_results_path: ""
+          reports_path: <<parameters.reportPath>>
+      - store_owasp_cache:
+          cve_data_directory: <<parameters.cve_data_directory>>
+

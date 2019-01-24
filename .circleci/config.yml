@@ -20,3 +20,21 @@ workflows:
   verify:
     jobs:
       - lint
+      - orb-tools/publish:
+          name: publish
+          context: orb-publishing
+          filters:
+            branches:
+              ignore: master
+          orb-path: src/@orb.yml
+          orb-ref: entur/owasp@dev:$CIRCLE_BRANCH
+      - orb-tools/increment:
+          name: release
+          context: orb-publishing
+          filters:
+            branches:
+              only: master
+          orb-path: src/@orb.yml
+          orb-ref: entur/owasp
+          requires:
+            - lint
