@@ -50,8 +50,8 @@ jobs:
       - run:
           name: Generate cache key
           command: |
-            export Y=$(date +"%Y")
-            export J=$(date +"%j")
+            echo 'export Y=$(date +"%Y")' >> $BASH_ENV
+            echo 'export J=$(date +"%j")' >> $BASH_ENV
       - restore_owasp_cache
       - gradle/with_cache:
           steps:
