@@ -17,6 +17,7 @@ commands:
   restore_owasp_cache:
     steps:
       - restore_cache:
+          name: Restore OWASP cache
           keys:
             - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}-{{ checksum "tenMinutesOfHour" }}
             - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}
@@ -29,6 +30,7 @@ commands:
         type: string
     steps:
       - save_cache:
+          name: Save OWASP cache
           key: cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}-{{ checksum "tenMinutesOfHour" }}
           paths:
             - <<parameters.cve_data_directory>>
