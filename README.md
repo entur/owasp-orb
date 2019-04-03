@@ -31,7 +31,7 @@ plugins {
 
 dependencyCheck {
     analyzedTypes = ['jar'] // the default artifact types that will be analyzed.
-    format = 'ALL' // OWASP Dependency Check plugin for Jenkins needs an XML report, but humans may also need an HTML one
+    format = 'ALL' // CI-tools usually needs XML-reports, but humans needs HTML.
     failBuildOnCVSS = 0 // Specifies if the build should be failed if a CVSS score equal to or above a specified level is identified.
     suppressionFiles = ["$projectDir/dependencycheck-base-suppression.xml"] // specify a list of known issues which contain false-positives
 
