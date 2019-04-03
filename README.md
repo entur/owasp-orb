@@ -51,4 +51,4 @@ Supported jobs are
 
 The OWASP plugin updates its database every 4 hours or so, and the database is cached by the orb.
 
-See the [orb](/src/@orb.yml) for further details.
+See the [orb](/src/@orb.yml) source or [CircleCI orb registry](https://circleci.com/orbs/registry/orb/entur/owasp) for further details.
