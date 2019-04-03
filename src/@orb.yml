@@ -38,7 +38,7 @@ commands:
   generate_cache_keys:
     steps:
       - run:
-          name: Generate cache keys
+          name: Generate OWASP cache keys
           command: |
             echo $(date +"%Y") >> year
             echo $(date +"%j") >> dayOfYear
