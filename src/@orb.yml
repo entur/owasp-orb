@@ -1,7 +1,7 @@
 version: 2.1
 
 description: |
-  An orb for running owasp vulnerability checks through gradle or maven
+  An orb for running OWASP vulnerability checks through Gradle
 
 orbs:
   gradle: circleci/gradle@1.0.6
@@ -18,6 +18,8 @@ commands:
     steps:
       - restore_cache:
           keys:
+            - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}-{{ checksum "tenMinutesOfHour" }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}
             - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}
             - cve-cache-{{ checksum "year" }}
             - cve-cache
@@ -27,12 +29,22 @@ commands:
         type: string
     steps:
       - save_cache:
-          key: cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}
+          key: cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}-{{ checksum "tenMinutesOfHour" }}
           paths:
             - <<parameters.cve_data_directory>>
 
+  generate_cache_keys:
+    steps:
+      - run:
+          name: Generate cache keys
+          command: |
+            echo $(date +"%Y") >> year
+            echo $(date +"%j") >> dayOfYear
+            echo $(date +"%H") >> hourOfDay
+            echo $(date +"%M") | cut -c1-1 >> tenMinutesOfHour
+
 jobs:
-  gradle:
+  owasp_dependency_check_analyze:
     parameters:
       executor:
         description: The name of custom executor to use
@@ -40,24 +52,47 @@ jobs:
         default: default
       cve_data_directory:
         type: string
-        default: "~/.gradle/caches/modules-2/files-2.1/org.owasp/dependency-check-utils/dependency-check-data"
+        default: "~/.owasp-dependency-check"
       reportPath:
         type: string
         default: build/reports/
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - run:
-          name: Generate cache keys
-          command: |
-            echo $(date +"%Y") >> year
-            echo $(date +"%j") >> dayOfYear
+      - generate_cache_keys
       - restore_owasp_cache
       - gradle/with_cache:
           steps:
             - run:
-                name: Run Tests
-                command: ./gradlew dependencyCheckAnalyze
+                name: Run OWASP Dependency Check for single-module project
+                command: ./gradlew dependencyCheckAnalyze --info
+      - gradle/collect_test_results:
+          test_results_path: ""
+          reports_path: <<parameters.reportPath>>
+      - store_owasp_cache:
+          cve_data_directory: <<parameters.cve_data_directory>>
+  owasp_dependency_check_aggregate:
+    parameters:
+      executor:
+        description: The name of custom executor to use
+        type: executor
+        default: default
+      cve_data_directory:
+        type: string
+        default: "~/.owasp-dependency-check"
+      reportPath:
+        type: string
+        default: build/reports/
+    executor: <<parameters.executor>>
+    steps:
+      - checkout
+      - generate_cache_keys
+      - restore_owasp_cache
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Run OWASP Dependency Check for multi-module project
+                command: ./gradlew dependencyCheckAggregate --info
       - gradle/collect_test_results:
           test_results_path: ""
           reports_path: <<parameters.reportPath>>
