@@ -19,9 +19,12 @@ commands:
       - restore_cache:
           name: Restore OWASP cache
           keys:
-            - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}-{{ checksum "tenMinutesOfHour" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}-{{ checksum "fourHoursOfDay" }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}
+            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}
             - cve-cache-{{ checksum "year" }}
             - cve-cache
   store_owasp_cache:
@@ -31,7 +34,7 @@ commands:
     steps:
       - save_cache:
           name: Save OWASP cache
-          key: cve-cache-{{ checksum "year" }}-{{ checksum "dayOfYear" }}-{{ checksum "hourOfDay" }}-{{ checksum "tenMinutesOfHour" }}
+          key: cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}-{{ checksum "fourHoursOfDay" }}
           paths:
             - <<parameters.cve_data_directory>>
 
@@ -41,9 +44,12 @@ commands:
           name: Generate OWASP cache keys
           command: |
             echo $(date +"%Y") >> year
-            echo $(date +"%j") >> dayOfYear
-            echo $(date +"%H") >> hourOfDay
-            echo $(date +"%M") | cut -c1-1 >> tenMinutesOfHour
+            echo $(( $(date +"%_j") / 84)) >> twelveWeeks
+            echo $(( $(date +"%_j") / 28)) >> fourWeeks
+            echo $(( $(date +"%_j") / 7)) >> week
+            echo $(( $(date +"%_j"))) >> day
+            echo $(( $(date +"%_H") / 12)) >> twelveHoursOfDay
+            echo $(( $(date +"%_H") / 4)) >> fourHoursOfDay
 
 jobs:
   owasp_dependency_check_analyze:

@@ -49,6 +49,16 @@ Supported jobs are
  * owasp_dependency_check_analyze for single-module projects
  * owasp_dependency_check_aggregate for multi-module projects 
 
-The OWASP plugin updates its database every 4 hours or so, and the database is cached by the orb.
+The OWASP plugin checks for updates to its database every 4 hours or so, and the database is cached by the orb like so:
+
+ * Year
+ * Quarter (12 weeks)
+ * Month (4 weeks)
+ * Week
+ * Day
+ * 12 hours
+ * 4 hours
+
+So in other words, for each working day, the first builds (in the morning) will check for updates, and last for four hours with potential cache refreshes every four clock hours (at 9, 13, 17, 21 and so on).
 
 See the [orb](/src/@orb.yml) source or [CircleCI orb registry](https://circleci.com/orbs/registry/orb/entur/owasp) for further details.
