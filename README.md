@@ -16,7 +16,7 @@ workflows:
   version: 2
   build:
     jobs:
-      - owasp/owasp_dependency_check_analyze:
+      - owasp/owasp_dependency_check:
           executor: java_11
           context: global
 ```
@@ -43,13 +43,25 @@ dependencyCheck {
 
 where the data directory must correspond to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above). 
 
+
 ## Details
-Supported jobs are
+The default OWASP plugin task is `dependencyCheckAnalyze`, for using other tasks, add a `task` parameter as so:
 
- * owasp_dependency_check_analyze for single-module projects
- * owasp_dependency_check_aggregate for multi-module projects 
+```
+workflows:
+  version: 2
+  build:
+    jobs:
+      - owasp/owasp_dependency_check:
+          executor: java_11
+          context: global
+          task: dependencyCheckAggregate
+```
 
-The OWASP plugin checks for updates to its database every 4 hours or so, and the database is cached by the orb like so:
+where task is one of [dependencyCheckAnalyze](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html), [dependencyCheckAggregate](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-aggregate.html), [dependencyCheckUpdate](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-update.html), and [dependencyCheckPurge](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-purge.html).
+
+### Caching
+The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
 
  * Year
  * Quarter (12 weeks)
@@ -59,6 +71,6 @@ The OWASP plugin checks for updates to its database every 4 hours or so, and the
  * 12 hours
  * 4 hours
 
-So in other words, for each working day, the first builds (in the morning) will check for updates, and last for four hours with potential cache refreshes every four clock hours (at 9, 13, 17, 21 and so on).
+So for each working day, the first builds (in the morning) will check for updates, and last for four hours with potential cache refreshes every four clock hours (at 9, 13, 17, 21 and so on). In other words, the OWASP plugin will check for updates whenever four hours have passed, and will be able to persist those updates to CircleCI cache in maximum four hours - a compromise between time spent saving cache and time spent checking for updates.
 
 See the [orb](/src/@orb.yml) source or [CircleCI orb registry](https://circleci.com/orbs/registry/orb/entur/owasp) for further details.

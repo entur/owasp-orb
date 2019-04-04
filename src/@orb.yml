@@ -52,7 +52,7 @@ commands:
             echo $(( $(date +"%_H") / 4)) >> fourHoursOfDay
 
 jobs:
-  owasp_dependency_check_analyze:
+  owasp_dependency_check:
     parameters:
       executor:
         description: The name of custom executor to use
@@ -61,6 +61,10 @@ jobs:
       cve_data_directory:
         type: string
         default: "~/.owasp-dependency-check"
+      task:
+        description: Task name
+        type: string
+        default: "dependencyCheckAnalyze"
       reportPath:
         type: string
         default: build/reports/
@@ -72,35 +76,8 @@ jobs:
       - gradle/with_cache:
           steps:
             - run:
-                name: Run OWASP Dependency Check for single-module project
-                command: ./gradlew dependencyCheckAnalyze --info
-      - gradle/collect_test_results:
-          test_results_path: ""
-          reports_path: <<parameters.reportPath>>
-      - store_owasp_cache:
-          cve_data_directory: <<parameters.cve_data_directory>>
-  owasp_dependency_check_aggregate:
-    parameters:
-      executor:
-        description: The name of custom executor to use
-        type: executor
-        default: default
-      cve_data_directory:
-        type: string
-        default: "~/.owasp-dependency-check"
-      reportPath:
-        type: string
-        default: build/reports/
-    executor: <<parameters.executor>>
-    steps:
-      - checkout
-      - generate_cache_keys
-      - restore_owasp_cache
-      - gradle/with_cache:
-          steps:
-            - run:
-                name: Run OWASP Dependency Check for multi-module project
-                command: ./gradlew dependencyCheckAggregate --info
+                name: Run OWASP Dependency Check
+                command: ./gradlew <<parameters.task>> --info
       - gradle/collect_test_results:
           test_results_path: ""
           reports_path: <<parameters.reportPath>>
