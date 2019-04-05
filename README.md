@@ -36,12 +36,12 @@ dependencyCheck {
     suppressionFiles = ["$projectDir/dependencycheck-base-suppression.xml"] // specify a list of known issues which contain false-positives
 
     data {
-        directory = System.properties['user.home'] + "/.owasp-dependency-check"
+        directory = System.properties['user.home'] + "/.owasp-dependency-check" // must correspond with CircleCI-configuration
     }
 }
 ```
 
-where the data directory must correspond to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above). 
+where the data directory __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above).
 
 
 ## Details
