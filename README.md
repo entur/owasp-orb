@@ -85,7 +85,6 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
         <format>all</format>
         <outputDirectory>target/owasp-reports</outputDirectory>
         <failBuildOnCVSS>7</failBuildOnCVSS>
-        <dataDirectory>${user.home}/.owasp-dependency-check</dataDirectory>
     </configuration>
     <executions>
         <execution>
@@ -99,7 +98,16 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 
 ```
 
-where the data directory __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above).
+#### Details
+If the data directory is specified, 
+
+```xml
+<configuration>
+    <dataDirectory>${user.home}/.m2/repository/org/owasp/dependency-check-data</dataDirectory>
+</configuration>
+```
+
+it __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.m2/repository/org/owasp/dependency-check-data` corresponding to the above configuration).
 
 ## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
