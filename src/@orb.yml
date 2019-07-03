@@ -77,8 +77,15 @@ aliases:
     steps:
       - checkout
       - generate_cache_keys:
-          cache_key: gradle-<< parameters.cache_key >>-cache-key
+          cache_key: gradle-<< parameters.cache_key >>-cache-key-v3
       - restore_owasp_cache
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Run OWASP Dependency Check Update
+                command: ./gradlew dependencyCheckUpdate --info
+      - store_owasp_cache:
+          cve_data_directory: <<parameters.cve_data_directory>>
       - gradle/with_cache:
           steps:
             - run:
@@ -86,8 +93,6 @@ aliases:
                 command: ./gradlew <<parameters.task>> --info
       - collect_reports:
           reports_path: <<parameters.reportPath>>
-      - store_owasp_cache:
-          cve_data_directory: <<parameters.cve_data_directory>>
 
 
 commands:
@@ -193,8 +198,16 @@ jobs:
     steps:
       - checkout
       - generate_cache_keys:
-          cache_key: maven-<< parameters.cache_key >>-cache-key
+          cache_key: maven-<< parameters.cache_key >>-cache-key-v3
       - restore_owasp_cache
+      - maven/with_cache:
+          settings_file: << parameters.settings_file >>
+          steps:
+            - run:
+                name: Run OWASP Dependency Check using Maven
+                command: mvn org.owasp:dependency-check-maven:update-only
+      - store_owasp_cache:
+          cve_data_directory: <<parameters.cve_data_directory>>
       - maven/with_cache:
           settings_file: << parameters.settings_file >>
           steps:
@@ -203,6 +216,4 @@ jobs:
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
       - collect_reports:
           reports_path: <<parameters.reportPath>>
-      - store_owasp_cache:
-          cve_data_directory: <<parameters.cve_data_directory>>
 
