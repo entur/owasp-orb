@@ -82,7 +82,7 @@ aliases:
       - gradle/with_cache:
           steps:
             - run:
-                name: Run OWASP Dependency Check Update
+                name: Run OWASP Dependency Check Database Update
                 command: ./gradlew dependencyCheckUpdate --info
       - store_owasp_cache:
           cve_data_directory: <<parameters.cve_data_directory>>
@@ -204,7 +204,7 @@ jobs:
           settings_file: << parameters.settings_file >>
           steps:
             - run:
-                name: Run OWASP Dependency Check using Maven
+                name: Run OWASP Dependency Check Database Update
                 command: mvn org.owasp:dependency-check-maven:update-only
       - store_owasp_cache:
           cve_data_directory: <<parameters.cve_data_directory>>
