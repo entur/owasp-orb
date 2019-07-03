@@ -27,9 +27,8 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '4.0.2'
+    id 'org.owasp.dependencycheck' version '5.1.0'
 }
-
 
 dependencyCheck {
     analyzedTypes = ['jar'] // the default artifact types that will be analyzed.

@@ -69,11 +69,17 @@ aliases:
         description: Report directory (no trailing slash).
         type: string
         default: build/reports
+      cache_key:
+        description: Specify a custom cache key (optional)
+        type: string
+        default: "gradle"
     executor: <<parameters.executor>>
     steps:
       - checkout
       - generate_cache_keys
+          cache_key: gradle
       - restore_owasp_cache
+          cache_key: gradle-<< parameters.cache_key >>
       - gradle/with_cache:
           steps:
             - run:
@@ -91,14 +97,14 @@ commands:
       - restore_cache:
           name: Restore OWASP cache
           keys:
-            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
-            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
-            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}
-            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}
-            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}
-            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}
-            - cve-cache-{{ checksum "/tmp/year" }}
-            - cve-cache
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}
+            - cve-cache-{{ checksum "/tmp/key" }}
   store_owasp_cache:
     parameters:
       cve_data_directory:
@@ -106,15 +112,20 @@ commands:
     steps:
       - save_cache:
           name: Save OWASP cache
-          key: cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
+          key: cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
           paths:
             - <<parameters.cve_data_directory>>
 
   generate_cache_keys:
+    parameters:
+      cache_key:
+        description: Unique cache key
+        type: string
     steps:
       - run:
           name: Generate OWASP cache keys
           command: |
+            echo <<parameters.cache_key>> >> tmp/key
             echo $(date +"%Y") >> /tmp/year
             echo $(( $(date +"%_j") / 84)) >> /tmp/twelveWeeks
             echo $(( $(date +"%_j") / 28)) >> /tmp/fourWeeks
@@ -175,17 +186,22 @@ jobs:
         description: Specify a custom settings file to use (optional)
         type: string
         default: ""
+      cache_key:
+        description: Specify a custom cache key (optional)
+        type: string
+        default: "default"
     executor: <<parameters.executor>>
     steps:
       - checkout
       - generate_cache_keys
+          cache_key: maven-<< parameters.cache_key >>
       - restore_owasp_cache
       - maven/with_cache:
           settings_file: << parameters.settings_file >>
           steps:
             - run:
                 name: Run OWASP Dependency Check using Maven
-                command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
+                command: ./mvnw org.owasp:dependency-check-maven:<<parameters.task>>
       - collect_reports:
           reports_path: <<parameters.reportPath>>
       - store_owasp_cache:
