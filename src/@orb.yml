@@ -78,6 +78,7 @@ aliases:
       - checkout
       - generate_cache_keys:
           cache_key: gradle-<< parameters.cache_key >>
+      - restore_owasp_cache
       - gradle/with_cache:
           steps:
             - run:
