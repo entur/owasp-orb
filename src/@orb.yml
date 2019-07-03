@@ -200,7 +200,7 @@ jobs:
           steps:
             - run:
                 name: Run OWASP Dependency Check using Maven
-                command: ./mvnw org.owasp:dependency-check-maven:<<parameters.task>>
+                command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
       - collect_reports:
           reports_path: <<parameters.reportPath>>
       - store_owasp_cache:
