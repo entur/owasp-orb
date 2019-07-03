@@ -84,15 +84,17 @@ aliases:
             - run:
                 name: Run OWASP Dependency Check Database Update
                 command: ./gradlew dependencyCheckUpdate --info
-      - store_owasp_cache:
-          cve_data_directory: <<parameters.cve_data_directory>>
-      - gradle/with_cache:
-          steps:
+            - store_owasp_cache:
+                when: on_success
+                cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 name: Run OWASP Dependency Check using Gradle
+                when: on_success
                 command: ./gradlew <<parameters.task>> --info
-      - collect_reports:
-          reports_path: <<parameters.reportPath>>
+            - collect_reports:
+                name: Save OWASP dependency check reports
+                when: on_success
+                reports_path: <<parameters.reportPath>>
 
 
 commands:
@@ -206,11 +208,8 @@ jobs:
             - run:
                 name: Run OWASP Dependency Check Database Update
                 command: mvn org.owasp:dependency-check-maven:update-only
-      - store_owasp_cache:
-          cve_data_directory: <<parameters.cve_data_directory>>
-      - maven/with_cache:
-          settings_file: << parameters.settings_file >>
-          steps:
+            - store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 name: Run OWASP Dependency Check using Maven
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
