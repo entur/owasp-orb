@@ -25,7 +25,7 @@ workflows:
 
 Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to your gradle build:
 
-```
+```groovy
 plugins {
     id 'org.owasp.dependencycheck' version '4.0.2'
 }
@@ -49,7 +49,7 @@ where the data directory __must correspond__ to the orb job parameter `cve_data_
 #### Details
 The default OWASP plugin task is `dependencyCheckAnalyze`, for using other tasks, add a `task` parameter as so:
 
-```
+```yaml
 workflows:
   version: 2.1
   build:
