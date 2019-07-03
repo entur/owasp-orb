@@ -86,7 +86,6 @@ aliases:
                 command: ./gradlew dependencyCheckUpdate --info
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
-                when: on_success
             - run:
                 name: Run OWASP Dependency Check using Gradle
                 command: ./gradlew <<parameters.task>> --info
