@@ -77,7 +77,7 @@ aliases:
     steps:
       - checkout
       - generate_cache_keys:
-          cache_key: gradle-<< parameters.cache_key >>-cache-key-v3
+          cache_key: gradle-<< parameters.cache_key >>-cache-key-v4
       - restore_owasp_cache
       - gradle/with_cache:
           steps:
@@ -175,7 +175,7 @@ jobs:
         default: default
       cve_data_directory:
         type: string
-        default: "~/.owasp-dependency-check"
+        default: "~/.m2/repository/org/owasp/dependency-check-data"
       task:
         description: Task name
         type: string
@@ -196,7 +196,7 @@ jobs:
     steps:
       - checkout
       - generate_cache_keys:
-          cache_key: maven-<< parameters.cache_key >>-cache-key-v3
+          cache_key: maven-<< parameters.cache_key >>-cache-key-v4
       - restore_owasp_cache
       - maven/with_cache:
           settings_file: << parameters.settings_file >>
