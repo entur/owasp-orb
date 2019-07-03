@@ -14,6 +14,39 @@ executors:
         environment:
           TERM: dumb
 
+aliases:
+  - &gradle_owasp_dependency_check
+    parameters:
+      executor:
+        description: The name of custom executor to use
+        type: executor
+        default: default
+      cve_data_directory:
+        type: string
+        default: "~/.owasp-dependency-check"
+      task:
+        description: Task name
+        type: string
+        default: "dependencyCheckAnalyze"
+      reportPath:
+        type: string
+        default: build/reports/
+    executor: <<parameters.executor>>
+    steps:
+      - checkout
+      - generate_cache_keys
+      - restore_owasp_cache
+      - gradle/with_cache:
+          steps:
+            - run:
+                name: Run OWASP Dependency Check using Gradle
+                command: ./gradlew <<parameters.task>> --info
+      - collect_reports:
+          reports_path: <<parameters.reportPath>>
+      - store_owasp_cache:
+          cve_data_directory: <<parameters.cve_data_directory>>
+
+
 commands:
   restore_owasp_cache:
     steps:
@@ -81,37 +114,8 @@ commands:
                   - owasp
 
 jobs:
-  gradle_owasp_dependency_check:
-    parameters:
-      executor:
-        description: The name of custom executor to use
-        type: executor
-        default: default
-      cve_data_directory:
-        type: string
-        default: "~/.owasp-dependency-check"
-      task:
-        description: Task name
-        type: string
-        default: "dependencyCheckAnalyze"
-      reportPath:
-        type: string
-        default: build/reports/
-    executor: <<parameters.executor>>
-    steps:
-      - checkout
-      - generate_cache_keys
-      - restore_owasp_cache
-      - gradle/with_cache:
-          steps:
-            - run:
-                name: Run OWASP Dependency Check using Gradle
-                command: ./gradlew <<parameters.task>> --info
-      - collect_reports:
-          reports_path: <<parameters.reportPath>>
-      - store_owasp_cache:
-          cve_data_directory: <<parameters.cve_data_directory>>
-
+  owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
+  gradle_owasp_dependency_check: *gradle_owasp_dependency_check
   maven_owasp_dependency_check:
     parameters:
       executor:
