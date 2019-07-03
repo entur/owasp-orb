@@ -85,7 +85,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
         <format>all</format>
         <outputDirectory>target/owasp-reports</outputDirectory>
         <failBuildOnCVSS>7</failBuildOnCVSS>
-        <dataDirectory>~/.owasp-dependency-check</dataDirectory>
+        <dataDirectory>${user.home}/.owasp-dependency-check</dataDirectory>
     </configuration>
     <executions>
         <execution>
