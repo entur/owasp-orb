@@ -1,27 +1,29 @@
 # owasp-orb
-A Circle CI orb executing OWASP dependency analysis for Gradle projects.
+A Circle CI orb executing OWASP dependency analysis for Gradle and Maven projects.
 
 ## Usage
 Import the orb
 
 ```yaml
 orbs:
-  owasp: entur/owasp@0.0.2
+  owasp: entur/owasp@0.0.3
 ```
 
-Then configure a job
+### Gradle
+
+Configure a job
 
 ```yaml
 workflows:
   version: 2
   build:
     jobs:
-      - owasp/owasp_dependency_check:
+      - owasp/gradle_owasp_dependency_check:
           executor: java_11
           context: global
 ```
 
-Then add [OWASP Dependency Plugin](https://github.com/jeremylong/DependencyCheck) to your gradle build:
+Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to your gradle build:
 
 ```
 plugins {
@@ -44,7 +46,7 @@ dependencyCheck {
 where the data directory __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above).
 
 
-## Details
+##¤¤ Details
 The default OWASP plugin task is `dependencyCheckAnalyze`, for using other tasks, add a `task` parameter as so:
 
 ```
@@ -59,6 +61,47 @@ workflows:
 ```
 
 where task is one of [dependencyCheckAnalyze](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html), [dependencyCheckAggregate](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-aggregate.html), [dependencyCheckUpdate](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-update.html), and [dependencyCheckPurge](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-purge.html).
+
+## Maven 
+Configure a job
+
+```yaml
+workflows:
+  version: 2
+  build:
+    jobs:
+      - owasp/maven_owasp_dependency_check:
+          executor: java_11
+          context: global
+```
+
+Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/dependency-check-maven/index.html) to your Maven build:
+
+```
+<plugin>
+    <groupId>org.owasp</groupId>
+    <artifactId>dependency-check-maven</artifactId>
+    <version>5.0.0</version>
+    <configuration>
+        <format>all</format>
+        <failOnError>true</failOnError>
+        <outputDirectory>target/owasp-reports</outputDirectory>
+        <failBuildOnCVSS>7</failBuildOnCVSS>
+        <dataDirectory>~/.owasp-dependency-check</dataDirectory>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <!-- run only using explicit command -->
+                <goal>none</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+
+```
+
+where the data directory __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above).
 
 ### Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
