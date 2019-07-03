@@ -87,7 +87,7 @@ aliases:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
-                name: Run OWASP Dependency Check using Gradle
+                name: Run OWASP Dependency Check Analyzer
                 command: ./gradlew <<parameters.task>> --info
             - collect_reports:
                 reports_path: <<parameters.reportPath>>
@@ -97,7 +97,7 @@ commands:
   restore_owasp_cache:
     steps:
       - restore_cache:
-          name: Restore OWASP cache
+          name: Restore OWASP Database from CircleCI cache
           keys:
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
@@ -113,7 +113,7 @@ commands:
         type: string
     steps:
       - save_cache:
-          name: Save OWASP cache
+          name: Save OWASP Database to CircleCI cache
           key: cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
           paths:
             - <<parameters.cve_data_directory>>
@@ -125,7 +125,7 @@ commands:
         type: string
     steps:
       - run:
-          name: Generate OWASP cache keys
+          name: Generate OWASP Database CircleCI cache keys
           command: |
             echo <<parameters.cache_key>> >> /tmp/key
             echo $(date +"%Y") >> /tmp/year
@@ -207,7 +207,7 @@ jobs:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
-                name: Run OWASP Dependency Check using Maven
+                name: Run OWASP Dependency Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
       - collect_reports:
           reports_path: <<parameters.reportPath>>
