@@ -59,6 +59,10 @@ commands:
       reports_path:
         description: Location of report published
         type: string
+      persist_to_workspace:
+        description: Location of report published
+        type: boolean
+        default: true
     steps:
       - run:
           name: Gather reports
@@ -68,10 +72,13 @@ commands:
       - store_artifacts:
           path: owasp
           destination: Reports
-      - persist_to_workspace:
-          root: .
-          paths:
-            - owasp
+      - when:
+          condition: <<parameters.persist_to_workspace>>
+          steps:
+            - persist_to_workspace:
+                root: .
+                paths:
+                  - owasp
 
 jobs:
   gradle_owasp_dependency_check:
@@ -100,8 +107,7 @@ jobs:
             - run:
                 name: Run OWASP Dependency Check using Gradle
                 command: ./gradlew <<parameters.task>> --info
-      - gradle/collect_test_results:
-          test_results_path: ""
+      - collect_reports:
           reports_path: <<parameters.reportPath>>
       - store_owasp_cache:
           cve_data_directory: <<parameters.cve_data_directory>>
