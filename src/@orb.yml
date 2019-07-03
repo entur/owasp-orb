@@ -91,13 +91,13 @@ commands:
       - restore_cache:
           name: Restore OWASP cache
           keys:
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}-{{ checksum "fourHoursOfDay" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}
-            - cve-cache-{{ checksum "year" }}
+            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
+            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
+            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}
+            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}
+            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}
+            - cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}
+            - cve-cache-{{ checksum "/tmp/year" }}
             - cve-cache
   store_owasp_cache:
     parameters:
