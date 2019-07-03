@@ -123,7 +123,7 @@ commands:
       - run:
           name: Generate OWASP cache keys
           command: |
-            echo <<parameters.cache_key>> >> tmp/key
+            echo <<parameters.cache_key>> >> /tmp/key
             echo $(date +"%Y") >> /tmp/year
             echo $(( $(date +"%_j") / 84)) >> /tmp/twelveWeeks
             echo $(( $(date +"%_j") / 28)) >> /tmp/fourWeeks
