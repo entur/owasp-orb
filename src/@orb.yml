@@ -1,7 +1,44 @@
 version: 2.1
 
 description: |
-  An orb for running OWASP vulnerability checks through Gradle
+  An orb for running OWASP vulnerability checks through Gradle and Maven.
+  Reports are persisted as artifacts under the directory 'Report/OWASP'.
+  Source: https://github.com/entur/owasp-orb
+
+examples:
+  standard_gradle_project:
+    description: |
+      If you have a standard Gradle project, you can use this orb to run through
+      a common Gradle worklow.
+    usage:
+      version: 2.1
+
+      orbs:
+        owasp: entur/owasp@0.0.3
+
+      workflows:
+        owasp:
+          jobs:
+            - owasp/gradle_owasp_dependency_check:
+                executor: java_11
+                context: global
+
+  standard_maven_project:
+    description: |
+      If you have a standard Maven project, you can use this orb to run through
+      a common Gradle worklow.
+    usage:
+      version: 2.1
+
+      orbs:
+        owasp: entur/owasp@0.0.3
+
+      workflows:
+        owasp:
+          jobs:
+            - owasp/maven_owasp_dependency_check:
+                executor: java_11
+                context: global
 
 orbs:
   gradle: circleci/gradle@1.0.11
@@ -29,8 +66,9 @@ aliases:
         type: string
         default: "dependencyCheckAnalyze"
       reportPath:
+        description: Report directory (no trailing slash).
         type: string
-        default: build/reports/
+        default: build/reports
     executor: <<parameters.executor>>
     steps:
       - checkout
@@ -68,7 +106,7 @@ commands:
     steps:
       - save_cache:
           name: Save OWASP cache
-          key: cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}-{{ checksum "fourHoursOfDay" }}
+          key: cve-cache-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
           paths:
             - <<parameters.cve_data_directory>>
 
@@ -77,13 +115,13 @@ commands:
       - run:
           name: Generate OWASP cache keys
           command: |
-            echo $(date +"%Y") >> year
-            echo $(( $(date +"%_j") / 84)) >> twelveWeeks
-            echo $(( $(date +"%_j") / 28)) >> fourWeeks
-            echo $(( $(date +"%_j") / 7)) >> week
-            echo $(( $(date +"%_j"))) >> day
-            echo $(( $(date +"%_H") / 12)) >> twelveHoursOfDay
-            echo $(( $(date +"%_H") / 4)) >> fourHoursOfDay
+            echo $(date +"%Y") >> /tmp/year
+            echo $(( $(date +"%_j") / 84)) >> /tmp/twelveWeeks
+            echo $(( $(date +"%_j") / 28)) >> /tmp/fourWeeks
+            echo $(( $(date +"%_j") / 7)) >> /tmp/week
+            echo $(( $(date +"%_j"))) >> /tmp/day
+            echo $(( $(date +"%_H") / 12)) >> /tmp/twelveHoursOfDay
+            echo $(( $(date +"%_H") / 4)) >> /tmp/fourHoursOfDay
 
   collect_reports:
     description: |
@@ -93,25 +131,25 @@ commands:
         description: Location of report published
         type: string
       persist_to_workspace:
-        description: Location of report published
+        description: Persist reports to workspace
         type: boolean
         default: true
     steps:
       - run:
           name: Gather reports
           command: |
-            mkdir -p owasp
-            cp << parameters.reports_path >>/dependency-check*.* owasp
+            mkdir -p OWASP
+            cp << parameters.reports_path >>/dependency-check*.* OWASP
       - store_artifacts:
-          path: owasp
-          destination: Reports
+          path: OWASP
+          destination: Reports/OWASP
       - when:
           condition: <<parameters.persist_to_workspace>>
           steps:
             - persist_to_workspace:
                 root: .
                 paths:
-                  - owasp
+                  - OWASP
 
 jobs:
   owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
