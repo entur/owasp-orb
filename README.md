@@ -9,13 +9,13 @@ orbs:
   owasp: entur/owasp@0.0.3
 ```
 
-### Gradle
+## Gradle
 
 Configure a job
 
 ```yaml
 workflows:
-  version: 2
+  version: 2.1
   build:
     jobs:
       - owasp/gradle_owasp_dependency_check:
@@ -46,12 +46,12 @@ dependencyCheck {
 where the data directory __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above).
 
 
-##¤¤ Details
+#### Details
 The default OWASP plugin task is `dependencyCheckAnalyze`, for using other tasks, add a `task` parameter as so:
 
 ```
 workflows:
-  version: 2
+  version: 2.1
   build:
     jobs:
       - owasp/owasp_dependency_check:
@@ -67,7 +67,7 @@ Configure a job
 
 ```yaml
 workflows:
-  version: 2
+  version: 2.1
   build:
     jobs:
       - owasp/maven_owasp_dependency_check:
@@ -102,7 +102,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 
 where the data directory __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above).
 
-### Caching
+## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
 
  * Year

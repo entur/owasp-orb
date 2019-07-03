@@ -1,7 +1,7 @@
 version: 2.1
 
 description: |
-  An orb for running OWASP vulnerability checks through Gradle and Maven.
+  An orb for running OWASP vulnerability checks through tasks configured in Gradle and Maven builds.
   Reports are persisted as artifacts under the directory 'Report/OWASP'.
   Source: https://github.com/entur/owasp-orb
 
