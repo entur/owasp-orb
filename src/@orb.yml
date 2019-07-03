@@ -84,17 +84,17 @@ aliases:
             - run:
                 name: Run OWASP Dependency Check Database Update
                 command: ./gradlew dependencyCheckUpdate --info
-            - store_owasp_cache:
-                when: on_success
-                cve_data_directory: <<parameters.cve_data_directory>>
-            - run:
-                name: Run OWASP Dependency Check using Gradle
-                when: on_success
-                command: ./gradlew <<parameters.task>> --info
-            - collect_reports:
-                name: Save OWASP dependency check reports
-                when: on_success
-                reports_path: <<parameters.reportPath>>
+            - when:
+                condition: on_success
+                steps: 
+                  - store_owasp_cache:
+                      cve_data_directory: <<parameters.cve_data_directory>>
+                  - run:
+                      name: Run OWASP Dependency Check using Gradle
+                      command: ./gradlew <<parameters.task>> --info
+                  - collect_reports:
+                      name: Save OWASP dependency check reports
+                      reports_path: <<parameters.reportPath>>
 
 
 commands:
