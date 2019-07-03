@@ -64,7 +64,7 @@ commands:
           name: Gather reports
           command: |
             mkdir -p owasp
-            cp '<< parameters.reports_path >>/dependency-check*.*' owasp
+            cp << parameters.reports_path >>/dependency-check*.* owasp
       - store_artifacts:
           path: owasp
           destination: Reports
