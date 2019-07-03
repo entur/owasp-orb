@@ -4,7 +4,8 @@ description: |
   An orb for running OWASP vulnerability checks through Gradle
 
 orbs:
-  gradle: circleci/gradle@1.0.6
+  gradle: circleci/gradle@1.0.11
+  maven: circleci/maven@0.0.8
 
 executors:
   default:
@@ -52,7 +53,7 @@ commands:
             echo $(( $(date +"%_H") / 4)) >> fourHoursOfDay
 
 jobs:
-  owasp_dependency_check:
+  gradle_owasp_dependency_check:
     parameters:
       executor:
         description: The name of custom executor to use
@@ -76,11 +77,47 @@ jobs:
       - gradle/with_cache:
           steps:
             - run:
-                name: Run OWASP Dependency Check
+                name: Run OWASP Dependency Check using Gradle
                 command: ./gradlew <<parameters.task>> --info
       - gradle/collect_test_results:
           test_results_path: ""
           reports_path: <<parameters.reportPath>>
       - store_owasp_cache:
           cve_data_directory: <<parameters.cve_data_directory>>
+
+  maven_owasp_dependency_check:
+    parameters:
+      executor:
+        description: The name of custom executor to use
+        type: executor
+        default: default
+      cve_data_directory:
+        type: string
+        default: "~/.owasp-dependency-check"
+      task:
+        description: Task name
+        type: string
+        default: "check"
+      reportPath:
+        type: string
+        default: target/owasp-reports
+      settings_file:
+        description: Specify a custom settings file to use (optional)
+        type: string
+    executor: <<parameters.executor>>
+    steps:
+      - checkout
+      - generate_cache_keys
+      - restore_owasp_cache
+      - maven/with_cache:
+          settings_file: << parameters.settings_file >>
+          steps:
+            - run:
+                name: Run OWASP Dependency Check using Maven
+                command: mvn org.owasp:dependency-check-maven:<<parameters.executor>>
+      - maven/process_test_results:
+          test_results_path: <<parameters.reportPath>>
+      - store_owasp_cache:
+          cve_data_directory: <<parameters.cve_data_directory>>
+
 
