@@ -104,6 +104,7 @@ jobs:
       settings_file:
         description: Specify a custom settings file to use (optional)
         type: string
+        default: ""
     executor: <<parameters.executor>>
     steps:
       - checkout
@@ -114,7 +115,7 @@ jobs:
           steps:
             - run:
                 name: Run OWASP Dependency Check using Maven
-                command: mvn org.owasp:dependency-check-maven:<<parameters.executor>>
+                command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
       - maven/process_test_results:
           test_results_path: <<parameters.reportPath>>
       - store_owasp_cache:
