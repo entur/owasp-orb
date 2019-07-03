@@ -76,9 +76,7 @@ aliases:
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - generate_cache_keys
-          cache_key: gradle
-      - restore_owasp_cache
+      - generate_cache_keys:
           cache_key: gradle-<< parameters.cache_key >>
       - gradle/with_cache:
           steps:
@@ -193,7 +191,7 @@ jobs:
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - generate_cache_keys
+      - generate_cache_keys:
           cache_key: maven-<< parameters.cache_key >>
       - restore_owasp_cache
       - maven/with_cache:
