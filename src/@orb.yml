@@ -168,6 +168,7 @@ jobs:
         type: string
         default: "check"
       reportPath:
+        description: Report location (no trailing slash).
         type: string
         default: target/owasp-reports
       settings_file:
