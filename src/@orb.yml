@@ -52,6 +52,29 @@ commands:
             echo $(( $(date +"%_H") / 12)) >> twelveHoursOfDay
             echo $(( $(date +"%_H") / 4)) >> fourHoursOfDay
 
+  collect_reports:
+    description: |
+      Store reports to build artifacts and persist to workspace.
+    parameters:
+      reports_path:
+        description: Location of report published
+        type: string
+    steps:
+      - when:
+    - run:
+	name: Gather reports
+	command: |
+	  mkdir -p owasp
+	  find . -name '<< parameters.reports_path >>/dependency-check*.*' -exec cp -v {} owasp \;
+    - store_artifacts:
+	path: owasp
+	destination: Reports
+    - persist_to_workspace:
+        root: .
+        paths:
+        - owasp
+
+
 jobs:
   gradle_owasp_dependency_check:
     parameters:
@@ -116,8 +139,8 @@ jobs:
             - run:
                 name: Run OWASP Dependency Check using Maven
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
-      - maven/process_test_results:
-          test_results_path: <<parameters.reportPath>>
+      - collect_reports:
+          reports_path: <<parameters.reportPath>>
       - store_owasp_cache:
           cve_data_directory: <<parameters.cve_data_directory>>
 
