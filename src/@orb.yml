@@ -170,7 +170,7 @@ jobs:
       reportPath:
         description: Report location (no trailing slash).
         type: string
-        default: target/owasp-reports
+        default: target
       settings_file:
         description: Specify a custom settings file to use (optional)
         type: string
