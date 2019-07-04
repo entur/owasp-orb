@@ -107,7 +107,7 @@ If the data directory is specified,
 </configuration>
 ```
 
-it __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.m2/repository/org/owasp/dependency-check-data` corresponding to the above configuration).
+it __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.m2/repository/org/owasp/dependency-check-data` corresponding to the above configuration). 
 
 ## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
