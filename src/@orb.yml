@@ -211,6 +211,6 @@ jobs:
             - collect_reports:
                 reports_path: <<parameters.reportPath>>
             - run: # clean up so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
-                name: Clean up OWASP Dependency Check 
+                name: Clean up OWASP Dependency Check
                 command: mvn org.owasp:dependency-check-maven:purge
 
