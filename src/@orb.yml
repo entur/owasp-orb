@@ -26,7 +26,7 @@ examples:
   standard_maven_project:
     description: |
       If you have a standard Maven project, you can use this orb to run through
-      a common Gradle worklow.
+      a common Maven worklow.
     usage:
       version: 2.1
 
