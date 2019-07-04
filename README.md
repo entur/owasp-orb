@@ -53,7 +53,7 @@ workflows:
   version: 2.1
   build:
     jobs:
-      - owasp/owasp_dependency_check:
+      - owasp/gradle_owasp_dependency_check:
           executor: java_11
           context: global
           task: dependencyCheckAggregate
@@ -80,7 +80,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>5.0.0</version>
+    <version>5.1.0</version>
     <configuration>
         <format>all</format>
         <outputDirectory>target/owasp-reports</outputDirectory>
@@ -99,6 +99,20 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 ```
 
 #### Details
+
+The default OWASP plugin task is `check`, for using other tasks, add a `task` parameter as so:
+
+```yaml
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - owasp/maven_owasp_dependency_check:
+          executor: java_11
+          context: global
+          task: aggregate
+```
+
 If the data directory is specified, 
 
 ```xml
@@ -108,6 +122,7 @@ If the data directory is specified,
 ```
 
 it __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.m2/repository/org/owasp/dependency-check-data` corresponding to the above configuration). 
+
 
 ## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
