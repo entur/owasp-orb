@@ -155,7 +155,7 @@ commands:
             cp << parameters.reports_path >>/dependency-check*.* Reports/OWASP
       - store_artifacts:
           name: Save OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory)
-          path: OWASP
+          path: Reports/OWASP
           destination: Reports/OWASP
       - when:
           condition: <<parameters.persist_to_workspace>>
