@@ -91,8 +91,7 @@ aliases:
                 command: ./gradlew <<parameters.task>> --info
             - collect_reports:
                 reports_path: <<parameters.reportPath>>
-
-
+            # don't purge data, assume it is not stored within the .gradle directory.
 commands:
   restore_owasp_cache:
     steps:
@@ -209,6 +208,9 @@ jobs:
             - run:
                 name: Run OWASP Dependency Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
-      - collect_reports:
-          reports_path: <<parameters.reportPath>>
+            - collect_reports:
+                reports_path: <<parameters.reportPath>>
+            - run: # clean up so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
+                name: Clean up OWASP Dependency Check 
+                command: mvn org.owasp:dependency-check-maven:purge
 
