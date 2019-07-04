@@ -87,11 +87,12 @@ aliases:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
+                # note: Also run purge so so that vulernability data is not cached twice
                 name: Run OWASP Dependency Check Analyzer
-                command: ./gradlew <<parameters.task>> --info
+                command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
             - collect_reports:
                 reports_path: <<parameters.reportPath>>
-            # don't purge data, assume it is not stored within the .gradle directory.
+
 commands:
   restore_owasp_cache:
     steps:
@@ -148,20 +149,22 @@ commands:
         default: true
     steps:
       - run:
-          name: Gather reports
+          name: Gather OWASP Dependency Check reports
           command: |
             mkdir -p OWASP
             cp << parameters.reports_path >>/dependency-check*.* OWASP
       - store_artifacts:
+          name: Save OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory)
           path: OWASP
           destination: Reports/OWASP
       - when:
           condition: <<parameters.persist_to_workspace>>
           steps:
             - persist_to_workspace:
+                name: Save OWASP Dependency Check reports in workspace (in 'OWASP' directory)
                 root: .
                 paths:
-                  - OWASP
+                  - Reports/OWASP
 
 jobs:
   owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
@@ -206,11 +209,9 @@ jobs:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
+                # note: Also run purge so so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
                 name: Run OWASP Dependency Check Analyzer
-                command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
+                command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
             - collect_reports:
                 reports_path: <<parameters.reportPath>>
-            - run: # clean up so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
-                name: Clean up OWASP Dependency Check
-                command: mvn org.owasp:dependency-check-maven:purge
 
