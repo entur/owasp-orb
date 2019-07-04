@@ -73,6 +73,10 @@ aliases:
         description: Specify a custom cache key (optional)
         type: string
         default: "gradle"
+      persist_to_workspace:
+        description: Persist reports to workspace for further processing
+        type: boolean
+        default: false
     executor: <<parameters.executor>>
     steps:
       - checkout
@@ -92,6 +96,7 @@ aliases:
                 command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
             - collect_reports:
                 reports_path: <<parameters.reportPath>>
+                persist_to_workspace: <<parameters.persist_to_workspace>>
 
 commands:
   restore_owasp_cache:
@@ -146,7 +151,6 @@ commands:
       persist_to_workspace:
         description: Persist reports to workspace
         type: boolean
-        default: true
     steps:
       - run:
           name: Gather OWASP Dependency Check reports
@@ -194,6 +198,10 @@ jobs:
         description: Specify a custom cache key (optional)
         type: string
         default: "default"
+      persist_to_workspace:
+        description: Persist reports to workspace for further processing
+        type: boolean
+        default: false
     executor: <<parameters.executor>>
     steps:
       - checkout
@@ -214,4 +222,5 @@ jobs:
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
             - collect_reports:
                 reports_path: <<parameters.reportPath>>
+                persist_to_workspace: <<parameters.persist_to_workspace>>
 
