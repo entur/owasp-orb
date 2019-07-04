@@ -55,26 +55,27 @@ aliases:
   - &gradle_owasp_dependency_check
     parameters:
       executor:
-        description: The name of custom executor to use
+        description: The name of custom executor to use.
         type: executor
         default: default
       cve_data_directory:
+        description: The plugin database directory.
         type: string
         default: "~/.owasp-dependency-check"
       task:
         description: Task name
         type: string
         default: "dependencyCheckAnalyze"
-      reportPath:
+      report_path:
         description: Report directory (no trailing slash).
         type: string
         default: build/reports
       cache_key:
-        description: Specify a custom cache key (optional)
+        description: Specify a custom cache key (optional).
         type: string
         default: "gradle"
       persist_to_workspace:
-        description: Persist reports to workspace for further processing
+        description: Persist reports to workspace for further processing.
         type: boolean
         default: false
     executor: <<parameters.executor>>
@@ -86,23 +87,23 @@ aliases:
                 cache_key: gradle-<< parameters.cache_key >>-cache-key-v4
             - restore_owasp_cache
             - run:
-                name: Run OWASP Dependency Check Database Update
+                name: Run OWASP Dependency Check Database Update.
                 command: ./gradlew dependencyCheckUpdate --info
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice
-                name: Run OWASP Dependency Check Analyzer
+                name: Run OWASP Dependency Check Analyzer.
                 command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
             - collect_reports:
-                reports_path: <<parameters.reportPath>>
+                reports_path: <<parameters.report_path>>
                 persist_to_workspace: <<parameters.persist_to_workspace>>
 
 commands:
   restore_owasp_cache:
     steps:
       - restore_cache:
-          name: Restore OWASP Database from CircleCI cache
+          name: Restore OWASP Database from CircleCI cache.
           keys:
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
@@ -118,7 +119,7 @@ commands:
         type: string
     steps:
       - save_cache:
-          name: Save OWASP Database to CircleCI cache
+          name: Save OWASP Database to CircleCI cache.
           key: cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
           paths:
             - <<parameters.cve_data_directory>>
@@ -126,11 +127,11 @@ commands:
   generate_cache_keys:
     parameters:
       cache_key:
-        description: Unique cache key
+        description: Unique cache key.
         type: string
     steps:
       - run:
-          name: Generate OWASP Database CircleCI cache keys
+          name: Generate OWASP Database CircleCI cache keys.
           command: |
             echo <<parameters.cache_key>> >> /tmp/key
             echo $(date +"%Y") >> /tmp/year
@@ -142,30 +143,29 @@ commands:
             echo $(( $(date +"%_H") / 4)) >> /tmp/fourHoursOfDay
 
   collect_reports:
-    description: |
-      Store reports to build artifacts and persist to workspace.
+    description: Store reports to build artifacts and persist to workspace.
     parameters:
       reports_path:
-        description: Location of report published
+        description: Location of report published.
         type: string
       persist_to_workspace:
-        description: Persist reports to workspace
+        description: Persist reports to workspace.
         type: boolean
     steps:
       - run:
-          name: Gather OWASP Dependency Check reports
+          name: Gather OWASP Dependency Check reports.
           command: |
             mkdir -p Reports/OWASP
             cp << parameters.reports_path >>/dependency-check*.* Reports/OWASP
       - store_artifacts:
-          name: Save OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory)
+          name: Save OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory).
           path: Reports/OWASP
           destination: Reports/OWASP
       - when:
           condition: <<parameters.persist_to_workspace>>
           steps:
             - persist_to_workspace:
-                name: Save OWASP Dependency Check reports in workspace (in 'Reports/OWASP' directory)
+                name: Save OWASP Dependency Check reports in workspace (in 'Reports/OWASP' directory).
                 root: .
                 paths:
                   - Reports/OWASP
@@ -176,30 +176,31 @@ jobs:
   maven_owasp_dependency_check:
     parameters:
       executor:
-        description: The name of custom executor to use
+        description: The name of custom executor to use.
         type: executor
         default: default
       cve_data_directory:
+        description: The plugin database directory.
         type: string
         default: "~/.m2/repository/org/owasp/dependency-check-data"
       task:
         description: Task name
         type: string
         default: "check"
-      reportPath:
+      report_path:
         description: Report location (no trailing slash).
         type: string
         default: target
       settings_file:
-        description: Specify a custom settings file to use (optional)
+        description: Specify a custom settings file to use (optional).
         type: string
         default: ""
       cache_key:
-        description: Specify a custom cache key (optional)
+        description: Specify a custom cache key (optional).
         type: string
         default: "default"
       persist_to_workspace:
-        description: Persist reports to workspace for further processing
+        description: Persist reports to workspace for further processing.
         type: boolean
         default: false
     executor: <<parameters.executor>>
@@ -212,15 +213,15 @@ jobs:
                 cache_key: maven-<< parameters.cache_key >>-cache-key-v4
             - restore_owasp_cache
             - run:
-                name: Run OWASP Dependency Check Database Update
+                name: Run OWASP Dependency Check Database Update.
                 command: mvn org.owasp:dependency-check-maven:update-only
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
-                name: Run OWASP Dependency Check Analyzer
+                name: Run OWASP Dependency Check Analyzer.
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
             - collect_reports:
-                reports_path: <<parameters.reportPath>>
+                reports_path: <<parameters.report_path>>
                 persist_to_workspace: <<parameters.persist_to_workspace>>
 
