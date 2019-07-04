@@ -1,10 +1,48 @@
 version: 2.1
 
 description: |
-  An orb for running OWASP vulnerability checks through Gradle
+  An orb for running OWASP vulnerability checks through tasks configured in Gradle and Maven builds.
+  Reports are persisted as artifacts under the directory 'Report/OWASP'.
+  Source: https://github.com/entur/owasp-orb
+
+examples:
+  standard_gradle_project:
+    description: |
+      If you have a standard Gradle project, you can use this orb to run through
+      a common Gradle worklow.
+    usage:
+      version: 2.1
+
+      orbs:
+        owasp: entur/owasp@0.0.3
+
+      workflows:
+        owasp:
+          jobs:
+            - owasp/gradle_owasp_dependency_check:
+                executor: java_11
+                context: global
+
+  standard_maven_project:
+    description: |
+      If you have a standard Maven project, you can use this orb to run through
+      a common Maven worklow.
+    usage:
+      version: 2.1
+
+      orbs:
+        owasp: entur/owasp@0.0.3
+
+      workflows:
+        owasp:
+          jobs:
+            - owasp/maven_owasp_dependency_check:
+                executor: java_11
+                context: global
 
 orbs:
-  gradle: circleci/gradle@1.0.6
+  gradle: circleci/gradle@1.0.11
+  maven: circleci/maven@0.0.8
 
 executors:
   default:
@@ -13,74 +51,177 @@ executors:
         environment:
           TERM: dumb
 
-commands:
-  restore_owasp_cache:
-    steps:
-      - restore_cache:
-          name: Restore OWASP cache
-          keys:
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}-{{ checksum "fourHoursOfDay" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}
-            - cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}
-            - cve-cache-{{ checksum "year" }}
-            - cve-cache
-  store_owasp_cache:
-    parameters:
-      cve_data_directory:
-        type: string
-    steps:
-      - save_cache:
-          name: Save OWASP cache
-          key: cve-cache-{{ checksum "year" }}-{{ checksum "twelveWeeks" }}-{{ checksum "fourWeeks" }}-{{ checksum "week" }}-{{ checksum "day" }}-{{ checksum "twelveHoursOfDay" }}-{{ checksum "fourHoursOfDay" }}
-          paths:
-            - <<parameters.cve_data_directory>>
-
-  generate_cache_keys:
-    steps:
-      - run:
-          name: Generate OWASP cache keys
-          command: |
-            echo $(date +"%Y") >> year
-            echo $(( $(date +"%_j") / 84)) >> twelveWeeks
-            echo $(( $(date +"%_j") / 28)) >> fourWeeks
-            echo $(( $(date +"%_j") / 7)) >> week
-            echo $(( $(date +"%_j"))) >> day
-            echo $(( $(date +"%_H") / 12)) >> twelveHoursOfDay
-            echo $(( $(date +"%_H") / 4)) >> fourHoursOfDay
-
-jobs:
-  owasp_dependency_check:
+aliases:
+  - &gradle_owasp_dependency_check
     parameters:
       executor:
-        description: The name of custom executor to use
+        description: The name of custom executor to use.
         type: executor
         default: default
       cve_data_directory:
+        description: The plugin database directory.
         type: string
         default: "~/.owasp-dependency-check"
       task:
         description: Task name
         type: string
         default: "dependencyCheckAnalyze"
-      reportPath:
+      report_path:
+        description: Report directory (no trailing slash).
         type: string
-        default: build/reports/
+        default: build/reports
+      cache_key:
+        description: Specify a custom cache key (optional).
+        type: string
+        default: "gradle"
+      persist_to_workspace:
+        description: Persist reports to workspace for further processing.
+        type: boolean
+        default: false
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - generate_cache_keys
-      - restore_owasp_cache
       - gradle/with_cache:
           steps:
+            - generate_cache_keys:
+                cache_key: gradle-<< parameters.cache_key >>-cache-key-v4
+            - restore_owasp_cache
             - run:
-                name: Run OWASP Dependency Check
-                command: ./gradlew <<parameters.task>> --info
-      - gradle/collect_test_results:
-          test_results_path: ""
-          reports_path: <<parameters.reportPath>>
-      - store_owasp_cache:
-          cve_data_directory: <<parameters.cve_data_directory>>
+                name: Update OWASP Dependency Check Database.
+                command: ./gradlew dependencyCheckUpdate --info
+            - store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice
+                name: Run OWASP Dependency Check Analyzer.
+                command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
+            - collect_reports:
+                reports_path: <<parameters.report_path>>
+                persist_to_workspace: <<parameters.persist_to_workspace>>
+
+commands:
+  restore_owasp_cache:
+    steps:
+      - restore_cache:
+          name: Restore OWASP Dependency Check Database from CircleCI cache.
+          keys:
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}
+            - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}
+            - cve-cache-{{ checksum "/tmp/key" }}
+  store_owasp_cache:
+    parameters:
+      cve_data_directory:
+        type: string
+    steps:
+      - save_cache:
+          name: Save OWASP Dependency Check Database to CircleCI cache.
+          key: cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
+          paths:
+            - <<parameters.cve_data_directory>>
+
+  generate_cache_keys:
+    parameters:
+      cache_key:
+        description: Unique cache key.
+        type: string
+    steps:
+      - run:
+          name: Generate OWASP Dependency Check Database CircleCI cache keys.
+          command: |
+            echo <<parameters.cache_key>> >> /tmp/key
+            echo $(date +"%Y") >> /tmp/year
+            echo $(( $(date +"%_j") / 84)) >> /tmp/twelveWeeks
+            echo $(( $(date +"%_j") / 28)) >> /tmp/fourWeeks
+            echo $(( $(date +"%_j") / 7)) >> /tmp/week
+            echo $(( $(date +"%_j"))) >> /tmp/day
+            echo $(( $(date +"%_H") / 12)) >> /tmp/twelveHoursOfDay
+            echo $(( $(date +"%_H") / 4)) >> /tmp/fourHoursOfDay
+
+  collect_reports:
+    description: Store reports to build artifacts and persist to workspace.
+    parameters:
+      reports_path:
+        description: Location of report published.
+        type: string
+      persist_to_workspace:
+        description: Persist reports to workspace.
+        type: boolean
+    steps:
+      - run:
+          name: Extract OWASP Dependency Check reports.
+          command: |
+            mkdir -p Reports/OWASP
+            cp << parameters.reports_path >>/dependency-check*.* Reports/OWASP
+      - store_artifacts:
+          name: Store OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory).
+          path: Reports/OWASP
+          destination: Reports/OWASP
+      - when:
+          condition: <<parameters.persist_to_workspace>>
+          steps:
+            - persist_to_workspace:
+                name: Persist OWASP Dependency Check reports to workspace (in 'Reports/OWASP' directory).
+                root: .
+                paths:
+                  - Reports/OWASP
+
+jobs:
+  owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
+  gradle_owasp_dependency_check: *gradle_owasp_dependency_check
+  maven_owasp_dependency_check:
+    parameters:
+      executor:
+        description: The name of custom executor to use.
+        type: executor
+        default: default
+      cve_data_directory:
+        description: The plugin database directory.
+        type: string
+        default: "~/.m2/repository/org/owasp/dependency-check-data"
+      task:
+        description: Task name
+        type: string
+        default: "check"
+      report_path:
+        description: Report location (no trailing slash).
+        type: string
+        default: target
+      settings_file:
+        description: Specify a custom settings file to use (optional).
+        type: string
+        default: ""
+      cache_key:
+        description: Specify a custom cache key (optional).
+        type: string
+        default: "default"
+      persist_to_workspace:
+        description: Persist reports to workspace for further processing.
+        type: boolean
+        default: false
+    executor: <<parameters.executor>>
+    steps:
+      - checkout
+      - maven/with_cache:
+          settings_file: << parameters.settings_file >>
+          steps:
+            - generate_cache_keys:
+                cache_key: maven-<< parameters.cache_key >>-cache-key-v4
+            - restore_owasp_cache
+            - run:
+                name: Update OWASP Dependency Check Database.
+                command: mvn org.owasp:dependency-check-maven:update-only
+            - store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
+                name: Run OWASP Dependency Check Analyzer.
+                command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
+            - collect_reports:
+                reports_path: <<parameters.report_path>>
+                persist_to_workspace: <<parameters.persist_to_workspace>>
 
