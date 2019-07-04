@@ -76,11 +76,11 @@ aliases:
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - generate_cache_keys:
-          cache_key: gradle-<< parameters.cache_key >>-cache-key-v4
-      - restore_owasp_cache
       - gradle/with_cache:
           steps:
+            - generate_cache_keys:
+                cache_key: gradle-<< parameters.cache_key >>-cache-key-v4
+            - restore_owasp_cache
             - run:
                 name: Run OWASP Dependency Check Database Update
                 command: ./gradlew dependencyCheckUpdate --info
@@ -195,12 +195,12 @@ jobs:
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - generate_cache_keys:
-          cache_key: maven-<< parameters.cache_key >>-cache-key-v4
-      - restore_owasp_cache
       - maven/with_cache:
           settings_file: << parameters.settings_file >>
           steps:
+            - generate_cache_keys:
+                cache_key: maven-<< parameters.cache_key >>-cache-key-v4
+            - restore_owasp_cache
             - run:
                 name: Run OWASP Dependency Check Database Update
                 command: mvn org.owasp:dependency-check-maven:update-only
