@@ -151,8 +151,8 @@ commands:
       - run:
           name: Gather OWASP Dependency Check reports
           command: |
-            mkdir -p OWASP
-            cp << parameters.reports_path >>/dependency-check*.* OWASP
+            mkdir -p Reports/OWASP
+            cp << parameters.reports_path >>/dependency-check*.* Reports/OWASP
       - store_artifacts:
           name: Save OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory)
           path: OWASP
@@ -161,7 +161,7 @@ commands:
           condition: <<parameters.persist_to_workspace>>
           steps:
             - persist_to_workspace:
-                name: Save OWASP Dependency Check reports in workspace (in 'OWASP' directory)
+                name: Save OWASP Dependency Check reports in workspace (in 'Reports/OWASP' directory)
                 root: .
                 paths:
                   - Reports/OWASP
