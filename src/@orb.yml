@@ -84,7 +84,7 @@ aliases:
       - gradle/with_cache:
           steps:
             - generate_cache_keys:
-                cache_key: gradle-<< parameters.cache_key >>-cache-key-v5
+                cache_key: gradle-<< parameters.cache_key >>-cache-key-v6
             - restore_owasp_cache
             - run:
                 name: Update OWASP Dependency Check Database.
@@ -210,7 +210,7 @@ jobs:
           settings_file: << parameters.settings_file >>
           steps:
             - generate_cache_keys:
-                cache_key: maven-<< parameters.cache_key >>-cache-key-v5
+                cache_key: maven-<< parameters.cache_key >>-cache-key-v6
             - restore_owasp_cache
             - run:
                 name: Update OWASP Dependency Check Database.
