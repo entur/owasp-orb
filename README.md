@@ -119,7 +119,7 @@ The OWASP plugin checks for updates to its database every four hours, and the da
 So for each working day, the first builds (in the morning) will check for updates, and last for four hours with potential cache refreshes every four clock hours (at 9, 13, 17, 21 and so on). In other words, the OWASP plugin will check for updates whenever four hours have passed, and will be able to persist those updates to CircleCI cache in maximum four hours - a compromise between time spent saving cache and time spent checking for updates.
 
 ### Data directory
-Use the Orb parameter `cve_data_directory` to configure non-standard data directory. Note that for Gradle builds this is necessary for plugin version <= `5.1.0`.
+Use the orb parameter `cve_data_directory` to configure non-standard data directory. Note that for Gradle builds this is necessary for plugin version <= `5.1.0`.
 
 Configuration examples (using default directories):
 
@@ -128,7 +128,8 @@ Configuration examples (using default directories):
 ```
 dependencyCheck {
     data {
-        directory = System.properties['user.home'] + "/.gradle/caches/dependency-check-data" // must correspond with CircleCI-configuration
+        // must correspond with CircleCI-configuration
+        directory = System.properties['user.home'] + "/.gradle/caches/dependency-check-data" 
     }
 }
 ```
