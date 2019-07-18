@@ -129,12 +129,12 @@ Configuration examples (using default directories):
 dependencyCheck {
     data {
         // must correspond with CircleCI-configuration
-        directory = System.properties['user.home'] + "/.gradle/caches/dependency-check-data" 
+        directory = System.properties['user.home'] + "/.gradle/dependency-check-data" 
     }
 }
 ```
 
-for `cve_data_directory` parameter value `~/.gradle/caches/dependency-check-data`.
+for `cve_data_directory` parameter value `~/.gradle/dependency-check-data`.
 
 #### Maven 
 

@@ -61,7 +61,7 @@ aliases:
       cve_data_directory:
         description: The plugin database directory.
         type: string
-        default: "~/.gradle/caches/dependency-check-data"
+        default: "~/.gradle/dependency-check-data"
       task:
         description: Task name
         type: string
