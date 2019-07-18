@@ -6,7 +6,7 @@ Import the orb
 
 ```yaml
 orbs:
-  owasp: entur/owasp@0.0.3
+  owasp: entur/owasp@0.0.4
 ```
 
 ## Gradle
@@ -27,7 +27,7 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '5.1.0'
+    id 'org.owasp.dependencycheck' version '5.1.1'
 }
 
 dependencyCheck {
@@ -35,15 +35,8 @@ dependencyCheck {
     format = 'ALL' // CI-tools usually needs XML-reports, but humans needs HTML.
     failBuildOnCVSS = 7 // Specifies if the build should be failed if a CVSS score equal to or above a specified level is identified.
     suppressionFiles = ["$projectDir/dependencycheck-base-suppression.xml"] // specify a list of known issues which contain false-positives
-
-    data {
-        directory = System.properties['user.home'] + "/.owasp-dependency-check" // must correspond with CircleCI-configuration
-    }
 }
 ```
-
-where the data directory __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.owasp-dependency-check` like in the configuration above).
-
 
 #### Details
 The default OWASP plugin task is `dependencyCheckAnalyze`, for using other tasks, add a `task` parameter as so:
@@ -112,17 +105,6 @@ workflows:
           task: aggregate
 ```
 
-If the data directory is specified, 
-
-```xml
-<configuration>
-    <dataDirectory>${user.home}/.m2/repository/org/owasp/dependency-check-data</dataDirectory>
-</configuration>
-```
-
-it __must correspond__ to the orb job parameter `cve_data_directory` (default value is `~/.m2/repository/org/owasp/dependency-check-data` corresponding to the above configuration). 
-
-
 ## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
 
@@ -135,5 +117,33 @@ The OWASP plugin checks for updates to its database every four hours, and the da
  * 4 hours
 
 So for each working day, the first builds (in the morning) will check for updates, and last for four hours with potential cache refreshes every four clock hours (at 9, 13, 17, 21 and so on). In other words, the OWASP plugin will check for updates whenever four hours have passed, and will be able to persist those updates to CircleCI cache in maximum four hours - a compromise between time spent saving cache and time spent checking for updates.
+
+### Data directory
+Use the Orb parameter `cve_data_directory` to configure non-standard data directory. Note that for Gradle builds this is necessary for plugin version <= `5.1.0`.
+
+Configuration examples (using default directories):
+
+#### Gradle
+
+```
+dependencyCheck {
+    data {
+        directory = System.properties['user.home'] + "/.gradle/caches/dependency-check-data" // must correspond with CircleCI-configuration
+    }
+}
+```
+
+for `cve_data_directory` parameter value `~/.gradle/caches/dependency-check-data`.
+
+#### Maven 
+
+```xml
+<configuration>
+    <!-- must correspond with CircleCI-configuration -->
+    <dataDirectory>${user.home}/.m2/repository/org/owasp/dependency-check-data</dataDirectory>
+</configuration>
+```
+
+for `cve_data_directory` parameter value `~/.m2/repository/org/owasp/dependency-check-data`.
 
 See the [orb](/src/@orb.yml) source or [CircleCI orb registry](https://circleci.com/orbs/registry/orb/entur/owasp) for further details.
