@@ -61,9 +61,9 @@ aliases:
       cve_data_directory:
         description: The plugin database directory.
         type: string
-        default: "~/.owasp-dependency-check"
+        default: "~/.gradle/dependency-check-data"
       task:
-        description: Task name
+        description: Task name.
         type: string
         default: "dependencyCheckAnalyze"
       report_path:
@@ -84,16 +84,16 @@ aliases:
       - gradle/with_cache:
           steps:
             - generate_cache_keys:
-                cache_key: gradle-<< parameters.cache_key >>-cache-key-v4
+                cache_key: gradle-<< parameters.cache_key >>-cache-key-v6
             - restore_owasp_cache
             - run:
-                name: Update OWASP Dependency Check Database.
+                name: Update OWASP Dependency Check Database
                 command: ./gradlew dependencyCheckUpdate --info
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice
-                name: Run OWASP Dependency Check Analyzer.
+                name: Run OWASP Dependency Check Analyzer
                 command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
             - collect_reports:
                 reports_path: <<parameters.report_path>>
@@ -103,7 +103,7 @@ commands:
   restore_owasp_cache:
     steps:
       - restore_cache:
-          name: Restore OWASP Dependency Check Database from CircleCI cache.
+          name: Restore OWASP Dependency Check Database from CircleCI cache
           keys:
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
@@ -119,7 +119,7 @@ commands:
         type: string
     steps:
       - save_cache:
-          name: Save OWASP Dependency Check Database to CircleCI cache.
+          name: Save OWASP Dependency Check Database to CircleCI cache
           key: cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
           paths:
             - <<parameters.cve_data_directory>>
@@ -131,7 +131,7 @@ commands:
         type: string
     steps:
       - run:
-          name: Generate OWASP Dependency Check Database CircleCI cache keys.
+          name: Generate OWASP Dependency Check Database CircleCI cache keys
           command: |
             echo <<parameters.cache_key>> >> /tmp/key
             echo $(date +"%Y") >> /tmp/year
@@ -153,19 +153,19 @@ commands:
         type: boolean
     steps:
       - run:
-          name: Extract OWASP Dependency Check reports.
+          name: Extract OWASP Dependency Check reports
           command: |
             mkdir -p Reports/OWASP
             cp << parameters.reports_path >>/dependency-check*.* Reports/OWASP
       - store_artifacts:
-          name: Store OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory).
+          name: Store OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory)
           path: Reports/OWASP
           destination: Reports/OWASP
       - when:
           condition: <<parameters.persist_to_workspace>>
           steps:
             - persist_to_workspace:
-                name: Persist OWASP Dependency Check reports to workspace (in 'Reports/OWASP' directory).
+                name: Persist OWASP Dependency Check reports to workspace (in 'Reports/OWASP' directory)
                 root: .
                 paths:
                   - Reports/OWASP
@@ -184,7 +184,7 @@ jobs:
         type: string
         default: "~/.m2/repository/org/owasp/dependency-check-data"
       task:
-        description: Task name
+        description: Task name.
         type: string
         default: "check"
       report_path:
@@ -210,16 +210,16 @@ jobs:
           settings_file: << parameters.settings_file >>
           steps:
             - generate_cache_keys:
-                cache_key: maven-<< parameters.cache_key >>-cache-key-v4
+                cache_key: maven-<< parameters.cache_key >>-cache-key-v6
             - restore_owasp_cache
             - run:
-                name: Update OWASP Dependency Check Database.
+                name: Update OWASP Dependency Check Database
                 command: mvn org.owasp:dependency-check-maven:update-only
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
-                name: Run OWASP Dependency Check Analyzer.
+                name: Run OWASP Dependency Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
             - collect_reports:
                 reports_path: <<parameters.report_path>>
