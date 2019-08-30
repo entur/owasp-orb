@@ -6,7 +6,7 @@ description: |
   Source: https://github.com/entur/owasp-orb
 
 examples:
-  standard_gradle_project:
+  gradle:
     description: |
       If you have a standard Gradle project, you can use this orb to run through
       a common Gradle worklow.
@@ -21,9 +21,8 @@ examples:
           jobs:
             - owasp/gradle_owasp_dependency_check:
                 executor: java_11
-                context: global
 
-  standard_maven_project:
+  maven:
     description: |
       If you have a standard Maven project, you can use this orb to run through
       a common Maven worklow.
@@ -38,9 +37,8 @@ examples:
           jobs:
             - owasp/maven_owasp_dependency_check:
                 executor: java_11
-                context: global
 
-  commandline_project:
+  commandline:
     description: |
       If you need to scan using the command line tool, you can use this orb to invoke it with custom arguments.
     usage:
@@ -54,7 +52,6 @@ examples:
           jobs:
             - owasp/commandline_owasp_dependency_check:
                 executor: java_11
-                context: global
                 arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
 
 orbs:
@@ -196,14 +193,6 @@ commands:
     parameters:
       steps:
         type: steps
-      version_url:
-        description: Location of latest Dependency-Check command-line tool version (i.e. 5.2.1)
-        type: string
-        default: "https://jeremylong.github.io/DependencyCheck/current.txt"
-      executable_url:
-        description: Location of latest Dependency-check command-line tool executable (zip archive)
-        type: string
-        default: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-$version-release.zip"
       version:
         description: Dependency-check version (if not specified, the latest version will be detected automatically).
         type: string
@@ -215,19 +204,19 @@ commands:
             - run:
                 name: Check for latest Dependency-Check command-line tool version
                 command: |
-                  curl --silent << parameters.version_url >> > /tmp/owasp_commandline_version
+                  curl --silent "$version_url" > /tmp/owasp_commandline_version
       - when:
           condition: <<parameters.version>>
           steps:
             - run:
-                name: Use fixed Dependency-Check version
+                name: Use fixed Dependency-Check command-line tool version
                 command: |
                   echo << parameters.version >> > /tmp/owasp_commandline_version
       - run:
           name: Create cache key
           command: |
-            echo <<parameters.version_url>> > /tmp/owasp_commandline_version_url
-            echo <<parameters.executable_url>> > /tmp/owasp_commandline_executable_url
+            echo "$version_url" > /tmp/owasp_commandline_version_url
+            echo "$executable_url" > /tmp/owasp_commandline_executable_url
       - restore_cache:
           key: commandline-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-{{ checksum "/tmp/owasp_commandline_executable_url" }}
       - run:
@@ -238,9 +227,9 @@ commands:
             then
                 echo "Dependency-Check command-line tool version $version already cached."
             else
-                url=$(echo "<< parameters.executable_url >>")
-                echo "Downloading dependency-check executable version $version from $url .."
-                wget -q -O owasp.zip "$url"
+                executable_url_with_version=$(echo "$executable_url")
+                echo "Downloading dependency-check executable version $version from $executable_url_with_version .."
+                wget -q -O owasp.zip "$executable_url_with_version"
                 unzip -o -q owasp.zip -d ~/.owasp
             fi
       - steps: << parameters.steps >>
@@ -334,6 +323,9 @@ jobs:
         type: string
         default: ""
     executor: << parameters.executor >>
+    environment:
+      version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
+      executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-$version-release.zip"
     steps:
       - checkout
       - with_commandline:
