@@ -69,7 +69,6 @@ workflows:
     jobs:
       - owasp/maven_owasp_dependency_check:
           executor: java_11
-          context: global
 ```
 
 Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/dependency-check-maven/index.html) to your Maven build:
@@ -106,7 +105,6 @@ workflows:
     jobs:
       - owasp/maven_owasp_dependency_check:
           executor: java_11
-          context: global
           task: aggregate
 ```
 
@@ -120,7 +118,6 @@ workflows:
     jobs:
       - owasp/commandline_owasp_dependency_check:
           executor: java_11
-          context: global
 ```
 #### Details
 The default OWASP arguments is `--scan ./`, for using other commands, add an `arguments` parameter as so:
@@ -132,7 +129,6 @@ workflows:
     jobs:
       - owasp/commandline_owasp_dependency_check:
           executor: java_11
-          context: global
           arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
 ```
 

@@ -213,22 +213,24 @@ commands:
                 command: |
                   echo << parameters.version >> > /tmp/owasp_commandline_version
       - run:
-          name: Create cache key
+          name: Create Dependency-Check command-line tool cache key
           command: |
             echo "$version_url" > /tmp/owasp_commandline_version_url
             echo "$executable_url" > /tmp/owasp_commandline_executable_url
       - restore_cache:
+          name: Restore Dependency-Check command-line tool from cache
           key: commandline-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-{{ checksum "/tmp/owasp_commandline_executable_url" }}
       - run:
           name: Download Dependency-Check command-line tool if not already cached
           command: |
             version=$(cat /tmp/owasp_commandline_version)
+            executable_url_with_version=$(echo "$executable_url")
             if [ ! -d "~/.owasp/dependency-check" ]
             then
-                echo "Dependency-Check command-line tool version $version already cached."
+                echo "Dependency-Check command-line tool version $version from $executable_url_with_version already cached."
             else
                 executable_url_with_version=$(echo "$executable_url")
-                echo "Downloading dependency-check executable version $version from $executable_url_with_version .."
+                echo "Downloading Dependency-Check executable version $version from $executable_url_with_version .."
                 wget -q -O owasp.zip "$executable_url_with_version"
                 unzip -o -q owasp.zip -d ~/.owasp
             fi
