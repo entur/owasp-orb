@@ -197,6 +197,10 @@ commands:
         description: Dependency-check version (if not specified, the latest version will be detected automatically).
         type: string
         default: ""
+      cache_key:
+        description: Specify a custom cache key (optional).
+        type: string
+        default: "default"
     steps:
       - unless:
           condition: <<parameters.version>>
@@ -219,13 +223,13 @@ commands:
             echo "$executable_url" > /tmp/owasp_commandline_executable_url
       - restore_cache:
           name: Restore Dependency-Check command-line tool from cache
-          key: commandline-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-{{ checksum "/tmp/owasp_commandline_executable_url" }}
+          key: commandline-<< parameters.cache_key >>-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-{{ checksum "/tmp/owasp_commandline_executable_url" }}
       - run:
           name: Download Dependency-Check command-line tool if not already cached
           command: |
             version=$(cat /tmp/owasp_commandline_version)
             executable_url_with_version=${executable_url//VERSION/$version}
-            if [ ! -d "~/.owasp/dependency-check" ]
+            if [ -d "~/.owasp/dependency-check" ]
             then
                 echo "Dependency-Check command-line tool version $version from $executable_url_with_version already cached."
             else
@@ -237,7 +241,7 @@ commands:
       - save_cache:
           paths:
             - ~/.owasp
-          key: commandline-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-{{ checksum "/tmp/owasp_commandline_executable_url" }}
+          key: commandline-<< parameters.cache_key >>-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-owasp_commandline_executable_url" }}
 
 jobs:
   owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
@@ -331,6 +335,7 @@ jobs:
       - checkout
       - with_commandline:
           version: << parameters.version >>
+          cache_key: << parameters.cache_key >>
           steps:
             - generate_cache_keys:
                 cache_key: commmandline-<< parameters.cache_key >>-cache-key-v6
