@@ -237,11 +237,12 @@ commands:
                 wget -q -O owasp.zip "$executable_url_with_version"
                 unzip -o -q owasp.zip -d ~/.owasp
             fi
-      - steps: << parameters.steps >>
       - save_cache:
+          name: Save Dependency-Check command-line tool to cache
           paths:
             - ~/.owasp
           key: commandline-<< parameters.cache_key >>-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-owasp_commandline_executable_url" }}
+      - steps: << parameters.steps >>
 
 jobs:
   owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
