@@ -1,5 +1,10 @@
+
 # owasp-orb
-A Circle CI orb executing OWASP dependency analysis for Gradle and Maven projects.
+A Circle CI orb using [OWASP Dependency Check](https://jeremylong.github.io/DependencyCheck/) to check for components with known security-vulnerablities. Supported variants:
+
+  * [Gradle plugin](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/index.html)
+  * [Maven plugin](https://jeremylong.github.io/DependencyCheck/dependency-check-maven/index.html)
+  * [Command Line Tool](https://jeremylong.github.io/DependencyCheck/dependency-check-cli/index.html)
 
 ## Usage
 Import the orb
@@ -27,7 +32,7 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '5.1.1'
+    id 'org.owasp.dependencycheck' version '5.2.1'
 }
 
 dependencyCheck {
@@ -64,7 +69,6 @@ workflows:
     jobs:
       - owasp/maven_owasp_dependency_check:
           executor: java_11
-          context: global
 ```
 
 Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/dependency-check-maven/index.html) to your Maven build:
@@ -73,7 +77,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>5.1.0</version>
+    <version>5.2.1</version>
     <configuration>
         <format>all</format>
         <failBuildOnCVSS>7</failBuildOnCVSS>
@@ -101,9 +105,34 @@ workflows:
     jobs:
       - owasp/maven_owasp_dependency_check:
           executor: java_11
-          context: global
           task: aggregate
 ```
+
+## Command Line Tool
+Configure a job
+
+```yaml
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - owasp/commandline_owasp_dependency_check:
+          executor: java_11
+```
+#### Details
+The default OWASP arguments is `--scan ./`, for using other commands, add an `arguments` parameter as so:
+
+```yaml
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - owasp/commandline_owasp_dependency_check:
+          executor: java_11
+          arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
+```
+
+See the [arguments page](https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html) for further details. Note that `--out`, `--format`, `--data` and `--noupdate` arguments are already appended by this orb (updating the database is performed in an individual previous step).
 
 ## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
@@ -147,4 +176,5 @@ for `cve_data_directory` parameter value `~/.gradle/dependency-check-data`.
 
 for `cve_data_directory` parameter value `~/.m2/repository/org/owasp/dependency-check-data`.
 
+## Further reading
 See the [orb](/src/@orb.yml) source or [CircleCI orb registry](https://circleci.com/orbs/registry/orb/entur/owasp) for further details.

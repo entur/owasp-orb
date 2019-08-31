@@ -1,12 +1,12 @@
 version: 2.1
 
 description: |
-  An orb for running OWASP vulnerability checks through tasks configured in Gradle and Maven builds.
+  An orb for running OWASP vulnerability checks through command-line or tasks configured in Gradle and Maven builds.
   Reports are persisted as artifacts under the directory 'Report/OWASP'.
   Source: https://github.com/entur/owasp-orb
 
 examples:
-  standard_gradle_project:
+  gradle:
     description: |
       If you have a standard Gradle project, you can use this orb to run through
       a common Gradle worklow.
@@ -14,16 +14,15 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.3
+        owasp: entur/owasp@0.0.4
 
       workflows:
         owasp:
           jobs:
             - owasp/gradle_owasp_dependency_check:
                 executor: java_11
-                context: global
 
-  standard_maven_project:
+  maven:
     description: |
       If you have a standard Maven project, you can use this orb to run through
       a common Maven worklow.
@@ -31,14 +30,29 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.3
+        owasp: entur/owasp@0.0.4
 
       workflows:
         owasp:
           jobs:
             - owasp/maven_owasp_dependency_check:
                 executor: java_11
-                context: global
+
+  commandline:
+    description: |
+      If you need to scan using the command line tool, you can use this orb to invoke it with custom arguments.
+    usage:
+      version: 2.1
+
+      orbs:
+        owasp: entur/owasp@0.0.4
+
+      workflows:
+        owasp:
+          jobs:
+            - owasp/commandline_owasp_dependency_check:
+                executor: java_11
+                arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
 
 orbs:
   gradle: circleci/gradle@1.0.11
@@ -67,7 +81,7 @@ aliases:
         type: string
         default: "dependencyCheckAnalyze"
       report_path:
-        description: Report directory (no trailing slash).
+        description: Report directory (no trailing slash). Reports persisted as artifacts are always stored under 'Reports/OWASP'.
         type: string
         default: build/reports
       cache_key:
@@ -87,13 +101,13 @@ aliases:
                 cache_key: gradle-<< parameters.cache_key >>-cache-key-v6
             - restore_owasp_cache
             - run:
-                name: Update OWASP Dependency Check Database
+                name: Update OWASP Dependency-Check Database
                 command: ./gradlew dependencyCheckUpdate --info
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice
-                name: Run OWASP Dependency Check Analyzer
+                name: Run OWASP Dependency-Check Analyzer
                 command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
             - collect_reports:
                 reports_path: <<parameters.report_path>>
@@ -103,7 +117,7 @@ commands:
   restore_owasp_cache:
     steps:
       - restore_cache:
-          name: Restore OWASP Dependency Check Database from CircleCI cache
+          name: Restore OWASP Dependency-Check Database from CircleCI cache
           keys:
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
             - cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}
@@ -119,7 +133,7 @@ commands:
         type: string
     steps:
       - save_cache:
-          name: Save OWASP Dependency Check Database to CircleCI cache
+          name: Save OWASP Dependency-Check Database to CircleCI cache
           key: cve-cache-{{ checksum "/tmp/key" }}-{{ checksum "/tmp/year" }}-{{ checksum "/tmp/twelveWeeks" }}-{{ checksum "/tmp/fourWeeks" }}-{{ checksum "/tmp/week" }}-{{ checksum "/tmp/day" }}-{{ checksum "/tmp/twelveHoursOfDay" }}-{{ checksum "/tmp/fourHoursOfDay" }}
           paths:
             - <<parameters.cve_data_directory>>
@@ -131,7 +145,7 @@ commands:
         type: string
     steps:
       - run:
-          name: Generate OWASP Dependency Check Database CircleCI cache keys
+          name: Generate OWASP Dependency-Check Database CircleCI cache keys
           command: |
             echo <<parameters.cache_key>> >> /tmp/key
             echo $(date +"%Y") >> /tmp/year
@@ -153,22 +167,82 @@ commands:
         type: boolean
     steps:
       - run:
-          name: Extract OWASP Dependency Check reports
+          name: Extract OWASP Dependency-Check reports
+          # Run even if a previous step returned non-zero exit code.
+          # The command-line tool returns non-zero exit codes if it finds
+          # vulernabilities above a certian CVSS score is detected.
+          when: always
           command: |
             mkdir -p Reports/OWASP
             cp << parameters.reports_path >>/dependency-check*.* Reports/OWASP
       - store_artifacts:
-          name: Store OWASP Dependency Check reports as artifacts (in 'Reports/OWASP' directory)
+          name: Store OWASP Dependency-Check reports as artifacts (in 'Reports/OWASP' directory)
           path: Reports/OWASP
           destination: Reports/OWASP
       - when:
           condition: <<parameters.persist_to_workspace>>
           steps:
             - persist_to_workspace:
-                name: Persist OWASP Dependency Check reports to workspace (in 'Reports/OWASP' directory)
+                name: Persist OWASP Dependency-Check reports to workspace (in 'Reports/OWASP' directory)
                 root: .
                 paths:
                   - Reports/OWASP
+  with_commandline:
+    description: |
+      Run a set of steps with the OWASP Dependency-Check command-line tool. Run from ~/.owasp/dependency-check/bin/dependency-check.sh.
+    parameters:
+      steps:
+        type: steps
+      version:
+        description: Dependency-check version (if not specified, the latest version will be detected automatically).
+        type: string
+        default: ""
+      cache_key:
+        description: Specify a custom cache key (optional).
+        type: string
+        default: "default"
+    steps:
+      - unless:
+          condition: <<parameters.version>>
+          steps:
+            - run:
+                name: Check for latest Dependency-Check command-line tool version
+                command: |
+                  curl --silent "$version_url" > /tmp/owasp_commandline_version
+      - when:
+          condition: <<parameters.version>>
+          steps:
+            - run:
+                name: Use fixed Dependency-Check command-line tool version
+                command: |
+                  echo << parameters.version >> > /tmp/owasp_commandline_version
+      - run:
+          name: Create Dependency-Check command-line tool cache key
+          command: |
+            echo "$version_url" > /tmp/owasp_commandline_version_url
+            echo "$executable_url" > /tmp/owasp_commandline_executable_url
+      - restore_cache:
+          name: Restore Dependency-Check command-line tool from cache
+          key: commandline-<< parameters.cache_key >>-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-{{ checksum "/tmp/owasp_commandline_executable_url" }}
+      - run:
+          name: Download Dependency-Check command-line tool if not already cached
+          command: |
+            version=$(cat /tmp/owasp_commandline_version)
+            executable_url_with_version=${executable_url//VERSION/$version}
+            if [ -d "~/.owasp/dependency-check" ]
+            then
+                echo "Dependency-Check command-line tool version $version from $executable_url_with_version already cached."
+            else
+                echo "Downloading Dependency-Check executable version $version from $executable_url_with_version .."
+                wget -q -O owasp.zip "$executable_url_with_version"
+                unzip -o -q owasp.zip -d ~/.owasp
+            fi
+      - save_cache:
+          name: Save Dependency-Check command-line tool to cache
+          paths:
+            - ~/.owasp
+          key: commandline-<< parameters.cache_key >>-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-owasp_commandline_executable_url" }}
+      - steps: << parameters.steps >>
 
 jobs:
   owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
@@ -188,7 +262,7 @@ jobs:
         type: string
         default: "check"
       report_path:
-        description: Report location (no trailing slash).
+        description: Report location (no trailing slash). Reports persisted as artifacts are always stored under 'Reports/OWASP'.
         type: string
         default: target
       settings_file:
@@ -213,15 +287,69 @@ jobs:
                 cache_key: maven-<< parameters.cache_key >>-cache-key-v6
             - restore_owasp_cache
             - run:
-                name: Update OWASP Dependency Check Database
+                name: Update OWASP Dependency-Check Database
                 command: mvn org.owasp:dependency-check-maven:update-only
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
-                name: Run OWASP Dependency Check Analyzer
+                name: Run OWASP Dependency-Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
             - collect_reports:
                 reports_path: <<parameters.report_path>>
                 persist_to_workspace: <<parameters.persist_to_workspace>>
+  commandline_owasp_dependency_check:
+    parameters:
+      executor:
+        description: The name of custom executor to use.
+        type: executor
+        default: default
+      cve_data_directory:
+        description: The data directory for vulernabilities.
+        type: string
+        default: "~/.owasp/dependency-check-data"
+      arguments:
+        description: Command line arguments. Note that '--out', '--format', '--data' and '--noupdate' arguments are already appended by this orb (updating the database is performed in a previous step).
+        type: string
+        default: "--scan ./"
+      report_path:
+        description: Report location (no trailing slash). Reports persisted as artifacts are always stored under 'Reports/OWASP'.
+        type: string
+        default: ./dependency-check-output
+      cache_key:
+        description: Specify a custom cache key (optional).
+        type: string
+        default: "default"
+      persist_to_workspace:
+        description: Persist reports to workspace for further processing.
+        type: boolean
+        default: false
+      version:
+        description: Dependency-check version (if not specified, the latest version will be detected automatically).
+        type: string
+        default: ""
+    executor: << parameters.executor >>
+    environment:
+      version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
+      executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
+    steps:
+      - checkout
+      - with_commandline:
+          version: << parameters.version >>
+          cache_key: << parameters.cache_key >>
+          steps:
+            - generate_cache_keys:
+                cache_key: commmandline-<< parameters.cache_key >>-cache-key-v6
+            - restore_owasp_cache
+            - run:
+                name: Update OWASP Dependency-Check Database
+                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+            - store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
+            - run:
+                name: Run OWASP Dependency-Check Analyzer
+                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --out << parameters.report_path >> --format ALL --noupdate << parameters.arguments >>
+            - collect_reports:
+                reports_path: << parameters.report_path >>
+                persist_to_workspace: << parameters.persist_to_workspace >>
 
