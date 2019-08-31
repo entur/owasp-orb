@@ -11,7 +11,7 @@ Import the orb
 
 ```yaml
 orbs:
-  owasp: entur/owasp@0.0.4
+  owasp: entur/owasp@0.0.6
 ```
 
 ## Gradle
