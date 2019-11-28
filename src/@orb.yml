@@ -174,7 +174,7 @@ commands:
             while IFS= read -r -d '' file; do
                 parent=$(dirname "$file")
                 grandParent=$(dirname "$parent")
-                grandGrandParent=$(dirnam171e "$grandParent")
+                grandGrandParent=$(dirname "$grandParent")
                 mv "$file" "$grandGrandParent"
             done
             # maven - one step up
