@@ -168,24 +168,22 @@ commands:
             mkdir -p Reports/OWASP
             # copy all reports files to the target directory
             find . -path ./Reports -prune -o  -name "dependency-check*.*" -exec cp --parents \{\} Reports/OWASP/ \;
-            
             # copy report files to parent directories for less folders (when using standard report locations)
             # gradle - two steps up
-            find ./Reports -type f -path "*build/reports/dependency-check*.*" -print0 | 
+            find ./Reports -type f -path "*build/reports/dependency-check*.*" -print0 |
             while IFS= read -r -d '' file; do
                 parent=$(dirname "$file")
                 grandParent=$(dirname "$parent")
-                grandGrandParent=$(dirname "$grandParent")
+                grandGrandParent=$(dirnam171e "$grandParent")
                 mv "$file" "$grandGrandParent"
-            done            
-            
+            done
             # maven - one step up
-            find ./Reports -type f -path "*target/dependency-check*.*" -print0 | 
+            find ./Reports -type f -path "*target/dependency-check*.*" -print0 |
             while IFS= read -r -d '' file; do
                 parent=$(dirname "$file")
                 grandParent=$(dirname "$parent")
                 mv "$file" "$grandParent"
-            done            
+            done
       - store_artifacts:
           name: Store OWASP Dependency-Check reports as artifacts (in 'Reports/OWASP' directory)
           path: Reports/OWASP
