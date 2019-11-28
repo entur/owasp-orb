@@ -45,7 +45,7 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.4
+        owasp: entur/owasp@0.0.x
 
       workflows:
         owasp:
@@ -105,7 +105,7 @@ aliases:
                 name: Run OWASP Dependency-Check Analyzer
                 command: ./gradlew <<parameters.task>> --info
             - run:
-                # note: Also run purge so so that vulernability data is not cached twice. 
+                # note: Also run purge so so that vulernability data is not cached twice.
                 # Run in seperate step so not run for each submodule.
                 name: OWASP Dependency-Check cache cleanup
                 command: ./gradlew dependencyCheckPurge --info
@@ -304,7 +304,7 @@ jobs:
                 name: Run OWASP Dependency-Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
             - run:
-                # note: Also run purge so so that vulernability data is not cached twice. 
+                # note: Also run purge so so that vulernability data is not cached twice.
                 # Run in seperate step so not run for each submodule.
                 name: OWASP Dependency-Check cache cleanup
                 command: mvn org.owasp:dependency-check-maven:purge
