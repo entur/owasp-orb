@@ -14,7 +14,7 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.4
+        owasp: entur/owasp@0.0.x
 
       workflows:
         owasp:
@@ -30,7 +30,7 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.4
+        owasp: entur/owasp@0.0.x
 
       workflows:
         owasp:
@@ -56,7 +56,7 @@ examples:
 
 orbs:
   gradle: circleci/gradle@1.0.11
-  maven: circleci/maven@0.0.8
+  maven: circleci/maven@0.0.11
 
 executors:
   default:
@@ -107,7 +107,7 @@ aliases:
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice. 
                 # Run in seperate step so not run for each submodule.
-                name: Run OWASP Dependency-Check Analyzer cleanup
+                name: OWASP Dependency-Check cache cleanup
                 command: ./gradlew dependencyCheckPurge --info
             - collect_reports:
                 persist_to_workspace: <<parameters.persist_to_workspace>>
@@ -301,9 +301,13 @@ jobs:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
-                # note: Also run purge so so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
                 name: Run OWASP Dependency-Check Analyzer
-                command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
+                command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice. 
+                # Run in seperate step so not run for each submodule.
+                name: OWASP Dependency-Check cache cleanup
+                command: mvn org.owasp:dependency-check-maven:purge
             - collect_reports:
                 persist_to_workspace: <<parameters.persist_to_workspace>>
   commandline_owasp_dependency_check:
