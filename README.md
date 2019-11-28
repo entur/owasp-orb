@@ -11,7 +11,7 @@ Import the orb
 
 ```yaml
 orbs:
-  owasp: entur/owasp@0.0.6
+  owasp: entur/owasp@0.0.x
 ```
 
 ## Gradle
@@ -32,7 +32,7 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '5.2.1'
+    id 'org.owasp.dependencycheck' version '5.2.4'
 }
 
 dependencyCheck {
@@ -77,7 +77,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>5.2.1</version>
+    <version>5.2.4</version>
     <configuration>
         <format>all</format>
         <failBuildOnCVSS>7</failBuildOnCVSS>
