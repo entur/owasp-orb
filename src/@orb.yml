@@ -102,9 +102,13 @@ aliases:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
-                # note: Also run purge so so that vulernability data is not cached twice
                 name: Run OWASP Dependency-Check Analyzer
-                command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
+                command: ./gradlew <<parameters.task>> --info
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice. 
+                # Run in seperate step so not run for each submodule.
+                name: Run OWASP Dependency-Check Analyzer cleanup
+                command: ./gradlew dependencyCheckPurge --info
             - collect_reports:
                 persist_to_workspace: <<parameters.persist_to_workspace>>
 
