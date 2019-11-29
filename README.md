@@ -14,7 +14,7 @@ orbs:
   owasp: entur/owasp@0.0.x
 ```
 
-where `x` is the latests version from [the orb registry](https://circleci.com/orbs/registry/orb/entur/owasp).
+where `x` is the latest version from [the orb registry](https://circleci.com/orbs/registry/orb/entur/owasp).
 
 ## Gradle
 
