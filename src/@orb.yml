@@ -321,7 +321,7 @@ jobs:
         type: string
         default: "~/.owasp/dependency-check-data"
       arguments:
-        description: Command line arguments. Note that '--out', '--format', '--data' and '--noupdate' arguments are already appended by this orb (updating the database is performed in a previous step).
+        description: Command line arguments. Note that '--format', '--data' and '--noupdate' arguments are already appended by this orb (updating the database is performed in a previous step).
         type: string
         default: "--scan ./"
       cache_key:
