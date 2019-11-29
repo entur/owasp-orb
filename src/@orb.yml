@@ -14,7 +14,7 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.4
+        owasp: entur/owasp@0.0.x
 
       workflows:
         owasp:
@@ -30,7 +30,7 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.4
+        owasp: entur/owasp@0.0.x
 
       workflows:
         owasp:
@@ -45,7 +45,7 @@ examples:
       version: 2.1
 
       orbs:
-        owasp: entur/owasp@0.0.4
+        owasp: entur/owasp@0.0.x
 
       workflows:
         owasp:
@@ -56,7 +56,7 @@ examples:
 
 orbs:
   gradle: circleci/gradle@1.0.11
-  maven: circleci/maven@0.0.8
+  maven: circleci/maven@0.0.11
 
 executors:
   default:
@@ -80,10 +80,6 @@ aliases:
         description: Task name.
         type: string
         default: "dependencyCheckAnalyze"
-      report_path:
-        description: Report directory (no trailing slash). Reports persisted as artifacts are always stored under 'Reports/OWASP'.
-        type: string
-        default: build/reports
       cache_key:
         description: Specify a custom cache key (optional).
         type: string
@@ -106,11 +102,14 @@ aliases:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
-                # note: Also run purge so so that vulernability data is not cached twice
                 name: Run OWASP Dependency-Check Analyzer
-                command: ./gradlew <<parameters.task>> dependencyCheckPurge --info
+                command: ./gradlew <<parameters.task>> --info
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice.
+                # Run in seperate step so not run for each submodule.
+                name: OWASP Dependency-Check cache cleanup
+                command: ./gradlew dependencyCheckPurge --info
             - collect_reports:
-                reports_path: <<parameters.report_path>>
                 persist_to_workspace: <<parameters.persist_to_workspace>>
 
 commands:
@@ -159,9 +158,6 @@ commands:
   collect_reports:
     description: Store reports to build artifacts and persist to workspace.
     parameters:
-      reports_path:
-        description: Location of report published.
-        type: string
       persist_to_workspace:
         description: Persist reports to workspace.
         type: boolean
@@ -174,7 +170,24 @@ commands:
           when: always
           command: |
             mkdir -p Reports/OWASP
-            cp << parameters.reports_path >>/dependency-check*.* Reports/OWASP
+            # copy all reports files to the target directory
+            find . -path ./Reports -prune -o  -name "dependency-check*.*" -exec cp --parents \{\} Reports/OWASP/ \;
+            # copy report files to parent directories for less folders (when using standard report locations)
+            # gradle - two steps up
+            find ./Reports -type f -path "*build/reports/dependency-check*.*" -print0 |
+            while IFS= read -r -d '' file; do
+                parent=$(dirname "$file")
+                grandParent=$(dirname "$parent")
+                grandGrandParent=$(dirname "$grandParent")
+                mv "$file" "$grandGrandParent"
+            done
+            # maven - one step up
+            find ./Reports -type f -path "*target/dependency-check*.*" -print0 |
+            while IFS= read -r -d '' file; do
+                parent=$(dirname "$file")
+                grandParent=$(dirname "$parent")
+                mv "$file" "$grandParent"
+            done
       - store_artifacts:
           name: Store OWASP Dependency-Check reports as artifacts (in 'Reports/OWASP' directory)
           path: Reports/OWASP
@@ -261,10 +274,6 @@ jobs:
         description: Task name.
         type: string
         default: "check"
-      report_path:
-        description: Report location (no trailing slash). Reports persisted as artifacts are always stored under 'Reports/OWASP'.
-        type: string
-        default: target
       settings_file:
         description: Specify a custom settings file to use (optional).
         type: string
@@ -292,11 +301,14 @@ jobs:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
-                # note: Also run purge so so that vulernability data is not cached twice (which it will by default, as it is stored within the .m2 directory)
                 name: Run OWASP Dependency-Check Analyzer
-                command: mvn org.owasp:dependency-check-maven:<<parameters.task>> org.owasp:dependency-check-maven:purge
+                command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice.
+                # Run in seperate step so not run for each submodule.
+                name: OWASP Dependency-Check cache cleanup
+                command: mvn org.owasp:dependency-check-maven:purge
             - collect_reports:
-                reports_path: <<parameters.report_path>>
                 persist_to_workspace: <<parameters.persist_to_workspace>>
   commandline_owasp_dependency_check:
     parameters:
@@ -309,13 +321,9 @@ jobs:
         type: string
         default: "~/.owasp/dependency-check-data"
       arguments:
-        description: Command line arguments. Note that '--out', '--format', '--data' and '--noupdate' arguments are already appended by this orb (updating the database is performed in a previous step).
+        description: Command line arguments. Note that '--format', '--data' and '--noupdate' arguments are already appended by this orb (updating the database is performed in a previous step).
         type: string
         default: "--scan ./"
-      report_path:
-        description: Report location (no trailing slash). Reports persisted as artifacts are always stored under 'Reports/OWASP'.
-        type: string
-        default: ./dependency-check-output
       cache_key:
         description: Specify a custom cache key (optional).
         type: string
@@ -348,8 +356,7 @@ jobs:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 name: Run OWASP Dependency-Check Analyzer
-                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --out << parameters.report_path >> --format ALL --noupdate << parameters.arguments >>
+                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --format ALL --noupdate << parameters.arguments >>
             - collect_reports:
-                reports_path: << parameters.report_path >>
                 persist_to_workspace: << parameters.persist_to_workspace >>
 
