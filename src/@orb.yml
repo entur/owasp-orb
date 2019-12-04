@@ -254,7 +254,7 @@ commands:
           name: Save Dependency-Check command-line tool to cache
           paths:
             - ~/.owasp
-          key: commandline-<< parameters.cache_key >>-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-owasp_commandline_executable_url" }}
+          key: commandline-<< parameters.cache_key >>-{{ checksum "/tmp/owasp_commandline_version" }}-{{ checksum "/tmp/owasp_commandline_version_url" }}-{{ checksum "/tmp/owasp_commandline_executable_url" }}
       - steps: << parameters.steps >>
 
 jobs:
