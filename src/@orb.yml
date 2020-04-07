@@ -55,8 +55,8 @@ examples:
                 arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
 
 orbs:
-  gradle: circleci/gradle@1.0.11
-  maven: circleci/maven@0.0.11
+  gradle: entur/gradle-orb@dev:testing
+  maven: entur/maven-orb@dev:testing
 
 executors:
   default:
@@ -92,23 +92,24 @@ aliases:
     steps:
       - checkout
       - gradle/with_cache:
+          cache_key: << parameters.cache_key >>
           steps:
             - generate_cache_keys:
                 cache_key: gradle-<< parameters.cache_key >>-cache-key-v6
             - restore_owasp_cache
             - run:
                 name: Update OWASP Dependency-Check Database
-                command: ./gradlew dependencyCheckUpdate --info
+                command: ./gradlew dependencyCheckUpdate --info --no-daemon
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 name: Run OWASP Dependency-Check Analyzer
-                command: ./gradlew <<parameters.task>> --info
+                command: ./gradlew <<parameters.task>> --info --no-daemon
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice.
                 # Run in seperate step so not run for each submodule.
                 name: OWASP Dependency-Check cache cleanup
-                command: ./gradlew dependencyCheckPurge --info
+                command: ./gradlew dependencyCheckPurge --info --no-daemon
             - collect_reports:
                 persist_to_workspace: <<parameters.persist_to_workspace>>
 
@@ -291,6 +292,7 @@ jobs:
       - checkout
       - maven/with_cache:
           settings_file: << parameters.settings_file >>
+          cache_key: << parameters.cache_key >>
           steps:
             - generate_cache_keys:
                 cache_key: maven-<< parameters.cache_key >>-cache-key-v6
