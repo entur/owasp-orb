@@ -96,7 +96,8 @@ aliases:
           steps:
             - generate_cache_keys:
                 cache_key: gradle-<< parameters.cache_key >>-cache-key
-            - restore_owasp_cache
+            - restore_owasp_cache:
+                cache_key: << parameters.cache_key >>
             - run:
                 name: Update OWASP Dependency-Check Database
                 command: ./gradlew dependencyCheckUpdate --info
@@ -303,7 +304,8 @@ jobs:
           steps:
             - generate_cache_keys:
                 cache_key: maven-<< parameters.cache_key >>-cache-key
-            - restore_owasp_cache
+            - restore_owasp_cache:
+                cache_key: << parameters.cache_key >>
             - run:
                 name: Update OWASP Dependency-Check Database
                 command: mvn org.owasp:dependency-check-maven:update-only
@@ -357,7 +359,8 @@ jobs:
           steps:
             - generate_cache_keys:
                 cache_key: commmandline-<< parameters.cache_key >>-cache-key
-            - restore_owasp_cache
+            - restore_owasp_cache:
+                cache_key: << parameters.cache_key >>
             - run:
                 name: Update OWASP Dependency-Check Database
                 command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
