@@ -62,7 +62,7 @@ orbs:
 executors:
   default:
     docker:
-      - image: circleci/openjdk:11-jdk-sid
+      - image: entur/kong:latest #circleci/openjdk:11-jdk-sid
         # NB! Add $DOCKERHUB_LOGIN and $DOCKERHUB_PASSWORD credentials in your context to log in to Docker hub
         auth:
           username: $DOCKERHUB_LOGIN
