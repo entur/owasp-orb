@@ -13,8 +13,9 @@ Import the orb
 orbs:
   owasp: entur/owasp@0.0.x
 ```
-
 where `x` is the latest version from [the orb registry](https://circleci.com/orbs/registry/orb/entur/owasp).
+
+ NB! Add $DOCKERHUB_LOGIN and $DOCKERHUB_PASSWORD credentials in your context to log in to Docker hub
 
 ## Gradle
 

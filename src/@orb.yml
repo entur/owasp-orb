@@ -56,13 +56,17 @@ examples:
 
 orbs:
   gradle: circleci/gradle@2.2.0
-  maven: circleci/maven@1.0.2
+  maven: circleci/maven@1.0.3
 
 
 executors:
   default:
     docker:
       - image: circleci/openjdk:11-jdk-sid
+        # NB! Add $DOCKERHUB_LOGIN and $DOCKERHUB_PASSWORD credentials in your context to log in to Docker hub
+        auth:
+          username: $DOCKERHUB_LOGIN
+          password: $DOCKERHUB_PASSWORD
         environment:
           TERM: dumb
 
