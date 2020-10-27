@@ -72,6 +72,7 @@ workflows:
     jobs:
       - owasp/maven_owasp_dependency_check:
           executor: java_11
+          context: global
 ```
 
 Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/dependency-check-maven/index.html) to your Maven build:
@@ -109,6 +110,7 @@ workflows:
       - owasp/maven_owasp_dependency_check:
           executor: java_11
           task: aggregate
+          context: global
 ```
 
 ## Command Line Tool
@@ -121,6 +123,7 @@ workflows:
     jobs:
       - owasp/commandline_owasp_dependency_check:
           executor: java_11
+          context: global
 ```
 #### Details
 The default OWASP arguments is `--scan ./`, for using other commands, add an `arguments` parameter as so:
@@ -133,6 +136,7 @@ workflows:
       - owasp/commandline_owasp_dependency_check:
           executor: java_11
           arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
+          context: global
 ```
 
 See the [arguments page](https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html) for further details. Note that `--format`, `--data` and `--noupdate` arguments are already appended by this orb (updating the database is performed in an individual previous step).
