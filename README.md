@@ -15,7 +15,8 @@ orbs:
 ```
 where `x` is the latest version from [the orb registry](https://circleci.com/orbs/registry/orb/entur/owasp).
 
- NB! Add $DOCKERHUB_LOGIN and $DOCKERHUB_PASSWORD credentials in your context to log in to Docker hub
+### Default executor
+To use the default executor, [Docker Hub credentials](https://circleci.com/docs/2.0/private-images/) must be set as the environment variables `$DOCKERHUB_LOGIN` and `$DOCKERHUB_PASSWORD`.
 
 ## Gradle
 
