@@ -21,6 +21,7 @@ examples:
           jobs:
             - owasp/gradle_owasp_dependency_check:
                 executor: java_11
+                context: global
 
   maven:
     description: |
@@ -37,6 +38,7 @@ examples:
           jobs:
             - owasp/maven_owasp_dependency_check:
                 executor: java_11
+                context: global
 
   commandline:
     description: |
@@ -53,6 +55,7 @@ examples:
             - owasp/commandline_owasp_dependency_check:
                 executor: java_11
                 arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
+                context: global
 
 orbs:
   gradle: circleci/gradle@2.2.0
