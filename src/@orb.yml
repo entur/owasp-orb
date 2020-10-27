@@ -21,6 +21,7 @@ examples:
           jobs:
             - owasp/gradle_owasp_dependency_check:
                 executor: java_11
+                context: global
 
   maven:
     description: |
@@ -37,6 +38,7 @@ examples:
           jobs:
             - owasp/maven_owasp_dependency_check:
                 executor: java_11
+                context: global
 
   commandline:
     description: |
@@ -53,16 +55,21 @@ examples:
             - owasp/commandline_owasp_dependency_check:
                 executor: java_11
                 arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
+                context: global
 
 orbs:
   gradle: circleci/gradle@2.2.0
-  maven: circleci/maven@1.0.2
+  maven: circleci/maven@1.0.3
 
 
 executors:
   default:
     docker:
-      - image: circleci/openjdk:11-jdk-sid
+      - image: cimg/openjdk:11.0.6
+        # NB! Add $DOCKERHUB_LOGIN and $DOCKERHUB_PASSWORD credentials in your context to log in to Docker hub
+        auth:
+          username: $DOCKERHUB_LOGIN
+          password: $DOCKERHUB_PASSWORD
         environment:
           TERM: dumb
 
