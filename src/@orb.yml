@@ -107,7 +107,7 @@ aliases:
                 cache_key: << parameters.cache_key >>
             - run:
                 name: Update OWASP Dependency-Check Database
-                command: ./gradlew dependencyCheckUpdate --info
+                command: ./gradlew :dependencyCheckUpdate --info
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
                 cache_key: << parameters.cache_key >>
@@ -118,7 +118,7 @@ aliases:
                 # note: Also run purge so so that vulernability data is not cached twice.
                 # Run in seperate step so not run for each submodule.
                 name: OWASP Dependency-Check cache cleanup
-                command: ./gradlew dependencyCheckPurge --info
+                command: ./gradlew :dependencyCheckPurge --info
             - collect_reports:
                 persist_to_workspace: <<parameters.persist_to_workspace>>
 
