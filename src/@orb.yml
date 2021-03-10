@@ -373,8 +373,7 @@ jobs:
     executor: << parameters.executor >>
     environment:
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
-      #executable_url: "https://github.com/jeremylong/DependencyCheck/releases/download/"
-      executable_url: "https://github.com/jeremylong/DependencyCheck/releases/download/vVERSION/dependency-check-VERSION-release.zip"
+      executable_url: "https://github.com/jeremylong/DependencyCheck/releases/download/"
     steps:
       - checkout
       - with_commandline:
