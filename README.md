@@ -140,7 +140,7 @@ workflows:
           context: global
 ```
 
-See the [arguments page](https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html) for further details. Note that `--format`, `--data` and `--noupdate` arguments are already appended by this orb (updating the database is performed in an individualprevious step).
+See the [arguments page](https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html) for further details. Note that `--format`, `--data` and `--noupdate` arguments are already appended by this orb (updating the database is performed in an individual previous step).
 
 Use `no_output_timeout` parameter to avoid "Too long with no output (exceeded 10m0s): context deadline exceeded" error
 ## Caching
