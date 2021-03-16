@@ -375,7 +375,7 @@ jobs:
     environment:
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
       #executable_url: "https://github.com/jeremylong/DependencyCheck/releases/download/"
-      executable_url: "https://github.com/jeremylong/DependencyCheck/releases/download/vVERSION/dependency-check-VERSION-release.zip"
+      executable_url: "https://github.com/jeremylong/DependencyCheck/releases/download/VERSION"
     steps:
       - checkout
       - with_commandline:
@@ -398,4 +398,3 @@ jobs:
                 command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --format ALL --noupdate << parameters.arguments >>
             - collect_reports:
                 persist_to_workspace: << parameters.persist_to_workspace >>
-
