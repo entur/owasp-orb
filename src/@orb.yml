@@ -245,7 +245,6 @@ commands:
                 name: Check for latest Dependency-Check command-line tool version
                 command: |
                   curl --silent "$version_url" > /tmp/owasp_commandline_version
-                  cat /tmp/owasp_commandline_version
       - when:
           condition: <<parameters.version>>
           steps:
