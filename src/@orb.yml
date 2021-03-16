@@ -264,8 +264,8 @@ commands:
           name: Download Dependency-Check command-line tool if not already cached
           command: |
             version=$(cat /tmp/owasp_commandline_version)
-            executable_url_with_version=${executable_url}v${version}/dependency-check-${version}-release.zip
-            # executable_url_with_version=${executable_url//VERSION/$version}
+            executable_url_with_version="${executable_url}v$version/dependency-check-$version-release.zip"
+            #executable_url_with_version=${executable_url//VERSION/$version}
             if [ -d ~/.owasp/dependency-check ]
             then
                 echo "Dependency-Check command-line tool version $version from $executable_url_with_version already cached."
