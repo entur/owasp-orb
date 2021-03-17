@@ -36,7 +36,7 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '5.2.4'
+    id 'org.owasp.dependencycheck' version '6.1.2'
 }
 
 dependencyCheck {
@@ -82,7 +82,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>5.2.4</version>
+    <version>6.1.2</version>
     <configuration>
         <format>all</format>
         <failBuildOnCVSS>7</failBuildOnCVSS>
@@ -142,6 +142,7 @@ workflows:
 
 See the [arguments page](https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html) for further details. Note that `--format`, `--data` and `--noupdate` arguments are already appended by this orb (updating the database is performed in an individual previous step).
 
+Use `no_output_timeout` parameter to avoid "Too long with no output (exceeded 10m0s): context deadline exceeded" error
 ## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
 

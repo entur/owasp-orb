@@ -92,6 +92,10 @@ aliases:
         description: Specify a custom cache key.
         type: string
         default: "v1"
+      no_output_timeout:
+        description: Specify period of time has passed with no output.
+        type: string
+        default: "15m"
       persist_to_workspace:
         description: Persist reports to workspace for further processing.
         type: boolean
@@ -113,6 +117,7 @@ aliases:
                 cache_key: << parameters.cache_key >>
             - run:
                 name: Run OWASP Dependency-Check Analyzer
+                no_output_timeout: << parameters.no_output_timeout >>
                 command: ./gradlew <<parameters.task>> --info
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice.
@@ -288,6 +293,10 @@ jobs:
         description: The plugin database directory.
         type: string
         default: "~/.m2/repository/org/owasp/dependency-check-data"
+      no_output_timeout:
+        description: Specify period of time has passed with no output.
+        type: string
+        default: "15m"
       task:
         description: Task name.
         type: string
@@ -323,6 +332,7 @@ jobs:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
+                no_output_timeout: << parameters.no_output_timeout >>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice.
                 # Run in seperate step so not run for each submodule.
@@ -340,6 +350,10 @@ jobs:
         description: The data directory for vulernabilities.
         type: string
         default: "~/.owasp/dependency-check-data"
+      no_output_timeout:
+        description: Specify period of time has passed with no output.
+        type: string
+        default: "15m"
       arguments:
         description: Command line arguments. Note that '--format', '--data' and '--noupdate' arguments are already appended by this orb (updating the database is performed in a previous step).
         type: string
@@ -359,7 +373,7 @@ jobs:
     executor: << parameters.executor >>
     environment:
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
-      executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
+      executable_url: "https://github.com/jeremylong/DependencyCheck/releases/download/vVERSION/dependency-check-VERSION-release.zip"
     steps:
       - checkout
       - with_commandline:
@@ -378,7 +392,7 @@ jobs:
                 cache_key: << parameters.cache_key >>
             - run:
                 name: Run OWASP Dependency-Check Analyzer
+                no_output_timeout: << parameters.no_output_timeout >>
                 command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --format ALL --noupdate << parameters.arguments >>
             - collect_reports:
                 persist_to_workspace: << parameters.persist_to_workspace >>
-
