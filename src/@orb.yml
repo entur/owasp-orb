@@ -59,7 +59,7 @@ examples:
 
 orbs:
   gradle: circleci/gradle@2.2.0
-  maven: circleci/maven@1.0.3
+  maven: circleci/maven@1.2.0
 
 
 executors:
@@ -318,6 +318,7 @@ jobs:
       - checkout
       - maven/with_cache:
           settings_file: << parameters.settings_file >>
+          verify_dependencies: false
           steps:
             - generate_cache_keys:
                 cache_key: maven-<< parameters.cache_key >>-cache-key
