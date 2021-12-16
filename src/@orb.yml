@@ -82,6 +82,8 @@ executors:
 
 aliases:
   - &gradle_owasp_dependency_check
+    description: |
+      Run OWASP dependency check for a Gradle project
     parameters:
       executor:
         description: The name of custom executor to use.
@@ -103,6 +105,12 @@ aliases:
         description: Persist reports to workspace for further processing.
         type: boolean
         default: false
+      wrapped_pre_steps:
+        description: |
+          Pre-processing steps to run in order to prepare the dependency check.
+          Not to be confused with the regular 'pre-steps' parameter, this runs after the Gradle cache has been restored and the OWASP database is updated.
+        type: steps
+        default: []
     executor: <<parameters.executor>>
     steps:
       - checkout
@@ -110,7 +118,8 @@ aliases:
           cve_data_directory: <<parameters.cve_data_directory>>
           cache_key: <<parameters.cache_key>>
           persist_to_workspace: <<parameters.persist_to_workspace>>
-          steps:
+          wrapped_pre_steps: <<parameters.wrapped_pre_steps>>
+          wrapped_steps:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: ./gradlew <<parameters.task>> --info
@@ -232,11 +241,11 @@ commands:
         description: Persist reports to workspace for further processing.
         type: boolean
         default: false
-      pre_steps:
+      wrapped_pre_steps:
         description: Pre-processing steps to run in order to prepare the dependency check. Intended for multi-module builds (which require build before dependency check)
         type: steps
         default: []
-      steps:
+      wrapped_steps:
         type: steps
         description: Steps to run in order to perform the dependency check
     steps:
@@ -255,8 +264,8 @@ commands:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
                 cache_key: << parameters.cache_key >>
-            - steps: << parameters.pre_steps >>
-            - steps: << parameters.steps >>
+            - steps: << parameters.wrapped_pre_steps >>
+            - steps: << parameters.wrapped_steps >>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice.
                 # Run in seperate step so not run for each submodule.
@@ -281,11 +290,11 @@ commands:
         description: Persist reports to workspace for further processing.
         type: boolean
         default: false
-      pre_steps:
+      wrapped_pre_steps:
         description: Pre-processing steps to run in order to prepare the dependency check
         type: steps
         default: []
-      steps:
+      wrapped_steps:
         description: Steps to run in order to perform the dependency check
         type: steps
     steps:
@@ -303,8 +312,8 @@ commands:
             - store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
                 cache_key: << parameters.cache_key >>
-            - steps: << parameters.pre_steps >>
-            - steps: << parameters.steps >>
+            - steps: << parameters.wrapped_pre_steps >>
+            - steps: << parameters.wrapped_steps >>
             - run:
                 # note: Also run purge so so that vulernability data is not cached twice.
                 # Run in seperate step so not run for each submodule.
@@ -374,6 +383,8 @@ jobs:
   owasp_dependency_check: *gradle_owasp_dependency_check  # default to gradle
   gradle_owasp_dependency_check: *gradle_owasp_dependency_check
   maven_owasp_dependency_check:
+    description: |
+      Run OWASP dependency check for a Maven project
     parameters:
       executor:
         description: The name of custom executor to use.
@@ -399,6 +410,12 @@ jobs:
         description: Persist reports to workspace for further processing.
         type: boolean
         default: false
+      wrapped_pre_steps:
+        description: |
+          Pre-processing steps to run in order to prepare the dependency check.
+          Not to be confused with the regular 'pre-steps' parameter, this runs after the Maven cache has been restored and the OWASP database is updated.
+        type: steps
+        default: []
     executor: <<parameters.executor>>
     steps:
       - checkout
@@ -407,7 +424,8 @@ jobs:
           settings_file: <<parameters.settings_file>>
           cache_key: <<parameters.cache_key>>
           persist_to_workspace: <<parameters.persist_to_workspace>>
-          steps:
+          wrapped_pre_steps: <<parameters.wrapped_pre_steps>>
+          wrapped_steps:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
