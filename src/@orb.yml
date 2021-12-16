@@ -59,19 +59,26 @@ examples:
 
 orbs:
   gradle: circleci/gradle@2.2.0
-  maven: circleci/maven@1.0.3
-
+  maven: circleci/maven@1.2.0
 
 executors:
   default:
+    description: |
+       This default Docker image is highly cached on CircleCI and contains most necessary tools needed for Gradle related projects.
     docker:
-      - image: cimg/openjdk:11.0.6
+      - image: cimg/openjdk:<<parameters.tag>>
         # NB! Add $DOCKERHUB_LOGIN and $DOCKERHUB_PASSWORD credentials in your context to log in to Docker hub
         auth:
           username: $DOCKERHUB_LOGIN
           password: $DOCKERHUB_PASSWORD
         environment:
           TERM: dumb
+    parameters:
+      tag:
+        default: "11.0.13"
+        description: |
+          Pick a specific cimg/openjdk image tag: https://hub.docker.com/r/cimg/openjdk/tags
+        type: string
 
 aliases:
   - &gradle_owasp_dependency_check
@@ -99,28 +106,15 @@ aliases:
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - gradle/with_cache:
+      - wrapped_gradle_steps:
+          cve_data_directory: <<parameters.cve_data_directory>>
+          settings_file: <<parameters.settings_file>>
+          cache_key: <<parameters.cache_key>>
+          persist_to_workspace: <<parameters.persist_to_workspace>>
           steps:
-            - generate_cache_keys:
-                cache_key: gradle-<< parameters.cache_key >>-cache-key
-            - restore_owasp_cache:
-                cache_key: << parameters.cache_key >>
-            - run:
-                name: Update OWASP Dependency-Check Database
-                command: ./gradlew dependencyCheckUpdate --info
-            - store_owasp_cache:
-                cve_data_directory: <<parameters.cve_data_directory>>
-                cache_key: << parameters.cache_key >>
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: ./gradlew <<parameters.task>> --info
-            - run:
-                # note: Also run purge so so that vulernability data is not cached twice.
-                # Run in seperate step so not run for each submodule.
-                name: OWASP Dependency-Check cache cleanup
-                command: ./gradlew dependencyCheckPurge --info
-            - collect_reports:
-                persist_to_workspace: <<parameters.persist_to_workspace>>
 
 commands:
   restore_owasp_cache:
@@ -218,6 +212,107 @@ commands:
                 root: .
                 paths:
                   - Reports/OWASP
+
+  wrapped_maven_steps:
+    description: |
+      Run a set of steps with the OWASP database updated and cached using Maven
+    parameters:
+      cve_data_directory:
+        description: The plugin database directory.
+        type: string
+        default: "~/.m2/repository/org/owasp/dependency-check-data"
+      settings_file:
+        description: Specify a custom settings file to use (optional).
+        type: string
+        default: ""
+      cache_key:
+        description: Specify a custom cache key.
+        type: string
+        default: "v1"
+      persist_to_workspace:
+        description: Persist reports to workspace for further processing.
+        type: boolean
+        default: false
+      pre_steps:
+        description: Pre-processing steps to run in order to prepare the dependency check. Intended for multi-module builds (which require build before dependency check)
+        type: steps
+      steps:
+        type: steps
+        description: Steps to run in order to perform the dependency check
+    steps:
+      - checkout
+      - maven/with_cache:
+          cache_key: << parameters.cache_key >>
+          settings_file: << parameters.settings_file >>
+          verify_dependencies: false
+          steps:
+            - generate_cache_keys:  # for both restore and store
+                cache_key: maven-<< parameters.cache_key >>-cache-key  # flow-specific key
+            - restore_owasp_cache:
+                cache_key: << parameters.cache_key >>
+            - run:
+                name: Update OWASP Dependency-Check Database
+                command: mvn org.owasp:dependency-check-maven:update-only
+            - store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
+                cache_key: << parameters.cache_key >>
+            - steps: << parameters.pre_steps >>
+            - steps: << parameters.steps >>
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice.
+                # Run in seperate step so not run for each submodule.
+                name: OWASP Dependency-Check cache cleanup
+                command: mvn org.owasp:dependency-check-maven:purge
+            - collect_reports:
+                persist_to_workspace: <<parameters.persist_to_workspace>>
+
+  wrapped_gradle_steps:
+    description: |
+      Run a set of steps with the OWASP database updated and cached using Gradle
+    parameters:
+      cve_data_directory:
+        description: The plugin database directory.
+        type: string
+        default: "~/.gradle/dependency-check-data"
+      cache_key:
+        description: Specify a custom cache key.
+        type: string
+        default: "v1"
+      persist_to_workspace:
+        description: Persist reports to workspace for further processing.
+        type: boolean
+        default: false
+      pre_steps:
+        description: Pre-processing steps to run in order to prepare the dependency check
+        type: steps
+      steps:
+        description: Steps to run in order to perform the dependency check
+        type: steps
+    steps:
+      - checkout
+      - gradle/with_cache:
+          cache_key: << parameters.cache_key >>
+          steps:
+            - generate_cache_keys:  # for both restore and store
+                cache_key: gradle-<< parameters.cache_key >>-cache-key  # flow-specific key
+            - restore_owasp_cache:
+                cache_key: << parameters.cache_key >>
+            - run:
+                name: Update OWASP Dependency-Check Database
+                command: ./gradlew dependencyCheckUpdate --info
+            - store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
+                cache_key: << parameters.cache_key >>
+            - steps: << parameters.pre_steps >>
+            - steps: << parameters.steps >>
+            - run:
+                # note: Also run purge so so that vulernability data is not cached twice.
+                # Run in seperate step so not run for each submodule.
+                name: OWASP Dependency-Check cache cleanup
+                command: ./gradlew dependencyCheckPurge --info
+            - collect_reports:
+                persist_to_workspace: <<parameters.persist_to_workspace>>
+
   with_commandline:
     description: |
       Run a set of steps with the OWASP Dependency-Check command-line tool. Run from ~/.owasp/dependency-check/bin/dependency-check.sh.
@@ -276,7 +371,7 @@ commands:
       - steps: << parameters.steps >>
 
 jobs:
-  owasp_dependency_check: *gradle_owasp_dependency_check # default to gradle
+  owasp_dependency_check: *gradle_owasp_dependency_check  # default to gradle
   gradle_owasp_dependency_check: *gradle_owasp_dependency_check
   maven_owasp_dependency_check:
     parameters:
@@ -307,29 +402,16 @@ jobs:
     executor: <<parameters.executor>>
     steps:
       - checkout
-      - maven/with_cache:
-          settings_file: << parameters.settings_file >>
+      - wrapped_maven_steps:
+          cve_data_directory: <<parameters.cve_data_directory>>
+          settings_file: <<parameters.settings_file>>
+          cache_key: <<parameters.cache_key>>
+          persist_to_workspace: <<parameters.persist_to_workspace>>
           steps:
-            - generate_cache_keys:
-                cache_key: maven-<< parameters.cache_key >>-cache-key
-            - restore_owasp_cache:
-                cache_key: << parameters.cache_key >>
-            - run:
-                name: Update OWASP Dependency-Check Database
-                command: mvn org.owasp:dependency-check-maven:update-only
-            - store_owasp_cache:
-                cve_data_directory: <<parameters.cve_data_directory>>
-                cache_key: << parameters.cache_key >>
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: mvn org.owasp:dependency-check-maven:<<parameters.task>>
-            - run:
-                # note: Also run purge so so that vulernability data is not cached twice.
-                # Run in seperate step so not run for each submodule.
-                name: OWASP Dependency-Check cache cleanup
-                command: mvn org.owasp:dependency-check-maven:purge
-            - collect_reports:
-                persist_to_workspace: <<parameters.persist_to_workspace>>
+
   commandline_owasp_dependency_check:
     parameters:
       executor:
@@ -366,8 +448,8 @@ jobs:
           version: << parameters.version >>
           cache_key: << parameters.cache_key >>
           steps:
-            - generate_cache_keys:
-                cache_key: commmandline-<< parameters.cache_key >>-cache-key
+            - generate_cache_keys:  # time-based keys for both restore and store
+                cache_key: commmandline-<< parameters.cache_key >>-cache-key  # flow-specific key
             - restore_owasp_cache:
                 cache_key: << parameters.cache_key >>
             - run:
