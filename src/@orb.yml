@@ -423,6 +423,7 @@ jobs:
         description: |
           Pre-processing steps to run in order to prepare the dependency check.
           Not to be confused with the regular 'pre-steps' parameter, this runs after the Maven cache has been restored and the OWASP database is updated.
+          Multi-module projects might consider running the command "mvn clean install -Dmaven.test.skip=true" so that the dependency-check plugin can resolve all artifacts.
         type: steps
         default: []
     executor: <<parameters.executor>>
