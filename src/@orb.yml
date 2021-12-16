@@ -108,7 +108,6 @@ aliases:
       - checkout
       - wrapped_gradle_steps:
           cve_data_directory: <<parameters.cve_data_directory>>
-          settings_file: <<parameters.settings_file>>
           cache_key: <<parameters.cache_key>>
           persist_to_workspace: <<parameters.persist_to_workspace>>
           steps:
@@ -236,13 +235,13 @@ commands:
       pre_steps:
         description: Pre-processing steps to run in order to prepare the dependency check. Intended for multi-module builds (which require build before dependency check)
         type: steps
+        default: []
       steps:
         type: steps
         description: Steps to run in order to perform the dependency check
     steps:
       - checkout
       - maven/with_cache:
-          cache_key: << parameters.cache_key >>
           settings_file: << parameters.settings_file >>
           verify_dependencies: false
           steps:
@@ -285,6 +284,7 @@ commands:
       pre_steps:
         description: Pre-processing steps to run in order to prepare the dependency check
         type: steps
+        default: []
       steps:
         description: Steps to run in order to perform the dependency check
         type: steps
