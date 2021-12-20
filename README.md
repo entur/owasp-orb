@@ -36,7 +36,7 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '6.2.2'
+    id 'org.owasp.dependencycheck' version '6.5.1'
 }
 
 dependencyCheck {
@@ -63,6 +63,8 @@ workflows:
 
 where task is one of [dependencyCheckAnalyze](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html), [dependencyCheckAggregate](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-aggregate.html), [dependencyCheckUpdate](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-update.html), and [dependencyCheckPurge](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration-purge.html).
 
+Alternatively, use the `wrapped_gradle_steps` command to customize further.
+
 ## Maven 
 Configure a job
 
@@ -82,7 +84,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>6.2.2</version>
+    <version>6.5.1</version>
     <configuration>
         <format>all</format>
         <failBuildOnCVSS>7</failBuildOnCVSS>
@@ -95,7 +97,6 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
         </execution>
     </executions>
 </plugin>
-
 ```
 
 #### Details
@@ -112,6 +113,24 @@ workflows:
           task: aggregate
           context: global
 ```
+
+#### Maven multi-module projects
+The dependency plugin currently is not able to resolve artifacts before they are built. If internal submodule dependencies cannot reached in the build, add a few `wrapped_pre_steps` to do so.
+
+```yaml
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - owasp/maven_owasp_dependency_check:
+          executor: java_11
+          context: global
+          wrapped_pre_steps:
+            - run:  mvn install -Dmaven.test.skip=true
+```
+
+Alternatively, use the `wrapped_maven_steps` command to customize further.
+
 
 ## Command Line Tool
 Configure a job
