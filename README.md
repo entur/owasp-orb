@@ -36,7 +36,7 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '6.2.2'
+    id 'org.owasp.dependencycheck' version '6.5.1'
 }
 
 dependencyCheck {
@@ -84,7 +84,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>6.2.2</version>
+    <version>6.5.1</version>
     <configuration>
         <format>all</format>
         <failBuildOnCVSS>7</failBuildOnCVSS>
