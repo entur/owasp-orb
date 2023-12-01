@@ -1,4 +1,5 @@
 
+
 # owasp-orb
 A Circle CI orb using [OWASP Dependency Check](https://jeremylong.github.io/DependencyCheck/) to check for components with known security-vulnerablities. Supported variants:
 
@@ -28,7 +29,7 @@ workflows:
   build:
     jobs:
       - owasp/gradle_owasp_dependency_check:
-          executor: java_11
+          executor: java_17
           context: global
 ```
 
@@ -36,16 +37,27 @@ Then add [OWASP Gradle Plugin](https://github.com/jeremylong/DependencyCheck) to
 
 ```groovy
 plugins {
-    id 'org.owasp.dependencycheck' version '6.5.1'
+    id 'org.owasp.dependencycheck' version '9.0.2'
 }
 
 dependencyCheck {
     analyzedTypes = ['jar'] // the default artifact types that will be analyzed.
     format = 'ALL' // CI-tools usually needs XML-reports, but humans needs HTML.
     failBuildOnCVSS = 7 // Specifies if the build should be failed if a CVSS score equal to or above a specified level is identified.
-    suppressionFiles = ["$projectDir/dependencycheck-base-suppression.xml"] // specify a list of known issues which contain false-positives
+    suppressionFiles = ["$rootDir/owasp_suppressions.xml"] // specify a list of known issues which contain false-positives
+    nvd {  
+        apiKey = "${project.properties['NVD_API_KEY'] ?: System.env.NVD_API_KEY}"  
+    }
 }
 ```
+
+where 
+
+ *  suppressions (false positives) are assumed to be in `owasp_suppressions.xml` in the root of the project.
+ *  `NVD_API_KEY` is assumed to contain the [NVD API Key](https://nvd.nist.gov/developers/request-an-api-key) via
+    * `~/.gradle/gradle.properties`, or
+    * environment variable, or
+    * command line parameter
 
 #### Details
 The default OWASP plugin task is `dependencyCheckAnalyze`, for using other tasks, add a `task` parameter as so:
@@ -56,7 +68,7 @@ workflows:
   build:
     jobs:
       - owasp/gradle_owasp_dependency_check:
-          executor: java_11
+          executor: java_17
           context: global
           task: dependencyCheckAggregate
 ```
@@ -74,7 +86,7 @@ workflows:
   build:
     jobs:
       - owasp/maven_owasp_dependency_check:
-          executor: java_11
+          executor: java_17
           context: global
 ```
 
@@ -84,10 +96,14 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>6.5.1</version>
+    <version>9.0.2</version>
     <configuration>
         <format>all</format>
         <failBuildOnCVSS>7</failBuildOnCVSS>
+        <nvdApiKey>${NVD_API_KEY}</nvdApiKey>
+        <suppressionFiles>  
+            <suppresionFile>${basedir}/owasp_suppressions.xml</suppresionFile>  
+        </suppressionFiles>        
     </configuration>
     <executions>
         <execution>
@@ -97,6 +113,36 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
         </execution>
     </executions>
 </plugin>
+```
+
+ *  suppressions (false positives) are assumed to be in `owasp_suppressions.xml` in the root of the project.
+ *  `NVD_API_KEY` is assumed to contain the [NVD API](https://nvd.nist.gov/developers/request-an-api-key) via
+    * `~/.m2/settings.xml`, or
+    * environment variable, or
+    * command line parameter
+    
+### Configure NVD API Key on local machine
+In `~/.m2/settings.xml`, add
+```
+<profiles>
+  <!-- ... -->
+  <profile>
+    <id>properties</id>
+    <properties>
+      <!-- other properties -->
+      <NVD_API_KEY>YOUR KEY HERE</NVD_API_KEY>
+    </properties>
+  </profile>
+</profiles>    
+```
+
+with 
+
+```
+<activeProfiles>
+  <!-- ... -->
+  <activeProfile>properties</activeProfile>
+</activeProfiles>
 ```
 
 #### Details
@@ -109,7 +155,7 @@ workflows:
   build:
     jobs:
       - owasp/maven_owasp_dependency_check:
-          executor: java_11
+          executor: java_17
           task: aggregate
           context: global
 ```
@@ -123,7 +169,7 @@ workflows:
   build:
     jobs:
       - owasp/maven_owasp_dependency_check:
-          executor: java_11
+          executor: java_17
           context: global
           wrapped_pre_steps:
             - run:  mvn install -Dmaven.test.skip=true
@@ -141,7 +187,7 @@ workflows:
   build:
     jobs:
       - owasp/commandline_owasp_dependency_check:
-          executor: java_11
+          executor: java_17
           context: global
 ```
 #### Details
@@ -153,14 +199,15 @@ workflows:
   build:
     jobs:
       - owasp/commandline_owasp_dependency_check:
-          executor: java_11
-          arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml"
+          executor: java_17
+          arguments: "--scan ./ --failOnCVSS 7 --suppression ./dependency-check-suppressions.xml --nvdApiKey $NVD_API_KEY"
           context: global
 ```
 
 See the [arguments page](https://jeremylong.github.io/DependencyCheck/dependency-check-cli/arguments.html) for further details. Note that `--format`, `--data` and `--noupdate` arguments are already appended by this orb (updating the database is performed in an individual previous step).
 
 Use `no_output_timeout` parameter to avoid "Too long with no output (exceeded 10m0s): context deadline exceeded" error
+
 ## Caching
 The OWASP plugin checks for updates to its database every four hours, and the database is cached by the orb like so:
 
@@ -205,3 +252,4 @@ for `cve_data_directory` parameter value `~/.m2/repository/org/owasp/dependency-
 
 ## Further reading
 See the [orb](/src/@orb.yml) source or [CircleCI orb registry](https://circleci.com/orbs/registry/orb/entur/owasp) for further details.
+
