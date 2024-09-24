@@ -96,7 +96,7 @@ Then add [OWASP Maven Plugin](https://jeremylong.github.io/DependencyCheck/depen
 <plugin>
     <groupId>org.owasp</groupId>
     <artifactId>dependency-check-maven</artifactId>
-    <version>9.0.2</version>
+    <version>10.0.4</version>
     <configuration>
         <format>all</format>
         <failBuildOnCVSS>7</failBuildOnCVSS>
